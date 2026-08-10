@@ -3,370 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StoryWeave AI – Personalized Interactive Storybooks</title>
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8eaf6 100%);
-            color: #333;
-            min-height: 100vh;
-        }
-
-        /* ── Navigation bar ── */
-        nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1.2rem 2.5rem;
-            background: white;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-logo {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #7B4AEA;
-            text-decoration: none;
-        }
-
-        .nav-cta {
-            padding: 0.55rem 1.2rem;
-            background: #7B4AEA;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .nav-cta:hover {
-            background: #5D34C5;
-        }
-
-        /* ── Hero section ── */
-        .hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 5rem 1.5rem 3rem;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #ede7ff;
-            color: #7B4AEA;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 0.35rem 0.9rem;
-            border-radius: 99px;
-            margin-bottom: 1.2rem;
-            letter-spacing: 0.03em;
-        }
-
-        h1 {
-            font-size: clamp(2.2rem, 5vw, 3.5rem);
-            margin: 0 0 1rem;
-            color: #1a1a2e;
-            line-height: 1.15;
-            max-width: 700px;
-        }
-
-        h1 span {
-            color: #7B4AEA;
-        }
-
-        .hero-sub {
-            font-size: 1.15rem;
-            max-width: 600px;
-            color: #555;
-            line-height: 1.65;
-            margin: 0 auto 2.5rem;
-        }
-
-        /* ── Signup form ── */
-        .signup-form {
-            display: flex;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            width: 100%;
-            max-width: 520px;
-            margin-bottom: 0.8rem;
-        }
-
-        .signup-form input[type="email"] {
-            flex: 1;
-            min-width: 220px;
-            padding: 0.85rem 1rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .signup-form input[type="email"]:focus {
-            border-color: #7B4AEA;
-        }
-
-        .signup-form button {
-            padding: 0.85rem 1.6rem;
-            background: #7B4AEA;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            white-space: nowrap;
-        }
-
-        .signup-form button:hover {
-            background: #5D34C5;
-        }
-
-        .signup-form button:active {
-            transform: scale(0.97);
-        }
-
-        .form-note {
-            font-size: 0.82rem;
-            color: #888;
-        }
-
-        /* Success message (hidden by default) */
-        .success-msg {
-            display: none;
-            background: #e6f4ea;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
-            border-radius: 8px;
-            padding: 0.85rem 1.4rem;
-            font-size: 1rem;
-            max-width: 520px;
-            width: 100%;
-            text-align: center;
-            margin-bottom: 0.8rem;
-        }
-
-        /* ── Feature cards ── */
-        .features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 1.5rem;
-            padding: 3rem 1.5rem;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: white;
-            border-radius: 14px;
-            padding: 2rem 1.6rem;
-            max-width: 260px;
-            flex: 1 1 220px;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.07);
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 28px rgba(0,0,0,0.11);
-        }
-
-        .card-icon {
-            font-size: 2.4rem;
-            margin-bottom: 0.8rem;
-            display: block;
-        }
-
-        .card h3 {
-            margin: 0 0 0.6rem;
-            color: #7B4AEA;
-            font-size: 1.15rem;
-        }
-
-        .card p {
-            font-size: 0.95rem;
-            color: #555;
-            line-height: 1.55;
-            margin: 0;
-        }
-
-        /* ── How it works section ── */
-        .how-it-works {
-            background: white;
-            padding: 3.5rem 1.5rem;
-            text-align: center;
-        }
-
-        .how-it-works h2 {
-            font-size: 1.9rem;
-            color: #1a1a2e;
-            margin-bottom: 2.5rem;
-        }
-
-        .steps {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 2rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .step {
-            flex: 1 1 180px;
-            max-width: 200px;
-        }
-
-        .step-number {
-            width: 44px;
-            height: 44px;
-            background: #7B4AEA;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin: 0 auto 0.8rem;
-        }
-
-        .step h4 {
-            margin: 0 0 0.4rem;
-            color: #1a1a2e;
-            font-size: 1rem;
-        }
-
-        .step p {
-            font-size: 0.9rem;
-            color: #666;
-            line-height: 1.5;
-            margin: 0;
-        }
-
-        /* ── Footer ── */
-        footer {
-            text-align: center;
-            padding: 2rem 1.5rem;
-            font-size: 0.85rem;
-            color: #888;
-            border-top: 1px solid #e5e5e5;
-        }
-    </style>
+    <title>Revenue OS — Creator & Consultant Command Center</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="app">
 
-    <!-- Step A: Navigation bar at the top -->
-    <nav>
-        <a class="nav-logo" href="#">StoryWeave AI</a>
-        <a class="nav-cta" href="#signup">Join Waitlist</a>
-    </nav>
-
-    <!-- Step B: Hero section – the big first impression -->
-    <section class="hero" id="signup">
-        <span class="badge">Coming Soon</span>
-        <h1>Stories that <span>adapt</span> to your child's imagination</h1>
-        <p class="hero-sub">
-            AI-generated storybooks personalized to your child's name, interests, and reading level.
-            Every adventure is unique — and every page sparks a love of reading.
-        </p>
-
-        <!-- Step C: Email form with JavaScript success message -->
-        <form class="signup-form" id="waitlistForm">
-            <input type="email" id="emailInput" placeholder="Enter your email address" required>
-            <button type="submit">Join Waitlist</button>
-        </form>
-        <div class="success-msg" id="successMsg">
-            You're on the list! We'll email you when we launch.
-        </div>
-        <p class="form-note">No spam. Unsubscribe anytime.</p>
-    </section>
-
-    <!-- Step D: Feature cards -->
-    <section class="features">
-        <div class="card">
-            <span class="card-icon">🎨</span>
-            <h3>Personalized</h3>
-            <p>Enter your child's name, interests and reading level – the story evolves just for them.</p>
-        </div>
-        <div class="card">
-            <span class="card-icon">🌿</span>
-            <h3>Interactive</h3>
-            <p>Kids make choices that change the plot, teaching cause and effect while staying engaged.</p>
-        </div>
-        <div class="card">
-            <span class="card-icon">📚</span>
-            <h3>Educational & Fun</h3>
-            <p>Each adventure reinforces vocabulary, comprehension and curiosity with playful storytelling.</p>
-        </div>
-    </section>
-
-    <!-- Step E: How it works section -->
-    <section class="how-it-works">
-        <h2>How It Works</h2>
-        <div class="steps">
-            <div class="step">
-                <div class="step-number">1</div>
-                <h4>Tell us about your child</h4>
-                <p>Name, age, favorite topics, and reading level.</p>
+        <!-- Left sidebar navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-glyph">⚡</span>
+                <span class="brand-wordmark">Revenue<b>OS</b></span>
             </div>
-            <div class="step">
-                <div class="step-number">2</div>
-                <h4>AI crafts the story</h4>
-                <p>Our model generates a unique illustrated adventure in seconds.</p>
+
+            <nav class="sidebar-nav">
+                <a class="nav-item" data-view="dashboard" href="#dashboard">
+                    <span class="nav-icon">🏠</span>
+                    <span>Dashboard</span>
+                </a>
+                <div class="nav-section">Agents</div>
+                <a class="nav-item" data-view="leads" href="#leads">
+                    <span class="nav-icon">🎯</span>
+                    <span>Lead Generation</span>
+                    <span class="dot" id="dot-leads"></span>
+                </a>
+                <a class="nav-item" data-view="sales" href="#sales">
+                    <span class="nav-icon">💼</span>
+                    <span>Sales & Follow-up</span>
+                    <span class="dot" id="dot-sales"></span>
+                </a>
+                <a class="nav-item" data-view="content" href="#content">
+                    <span class="nav-icon">✍️</span>
+                    <span>Content Creator</span>
+                    <span class="dot" id="dot-content"></span>
+                </a>
+                <a class="nav-item" data-view="analytics" href="#analytics">
+                    <span class="nav-icon">📈</span>
+                    <span>Analytics</span>
+                    <span class="dot" id="dot-analytics"></span>
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="avatar" id="sidebar-avatar">AR</div>
+                <div class="user-meta">
+                    <span class="user-name" id="sidebar-username">Alex Rivera</span>
+                    <span class="user-role">Consultant</span>
+                </div>
             </div>
-            <div class="step">
-                <div class="step-number">3</div>
-                <h4>Your child explores</h4>
-                <p>They read, make choices, and shape the ending themselves.</p>
-            </div>
-            <div class="step">
-                <div class="step-number">4</div>
-                <h4>Learn & grow</h4>
-                <p>Every story builds vocabulary, comprehension and a love of reading.</p>
-            </div>
-        </div>
-    </section>
+        </aside>
 
-    <footer>
-        &copy; 2026 StoryWeave AI. All rights reserved.
-    </footer>
+        <!-- Main content — views are injected here by app.js -->
+        <main class="main" id="main"></main>
+    </div>
 
-    <!-- Step F: JavaScript to handle the form submission -->
-    <script>
-        document.getElementById('waitlistForm').addEventListener('submit', function(event) {
-            // Prevent the page from reloading when the form is submitted
-            event.preventDefault();
+    <!-- Toast notification (shown after agent runs) -->
+    <div class="toast" id="toast"></div>
 
-            const email = document.getElementById('emailInput').value;
-
-            // In a real app you would send the email to your server here.
-            // For now, we just show a friendly success message.
-            console.log('Waitlist signup:', email);
-
-            // Hide the form, show the success message
-            this.style.display = 'none';
-            document.getElementById('successMsg').style.display = 'block';
-        });
-    </script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

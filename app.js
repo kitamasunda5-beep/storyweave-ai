@@ -1,0 +1,1208 @@
+'use strict';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════════════════════
+
+const STORAGE_KEY = 'revenue_os_v1';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INITIAL DATA  — shown on first load, then overridden by localStorage
+// ══════════════════════════════════════════════════════════════════════════════
+
+const INITIAL_DATA = {
+    settings: { userName: 'Alex Rivera', niche: 'Business & Revenue Consulting', initials: 'AR' },
+
+    leads: [
+        { id: 'L001', name: 'Marcus Chen',    email: 'marcus@techcorp.io',     company: 'TechCorp',         source: 'LinkedIn',   status: 'Qualified',   score: 8,  value: 5500,  addedAt: '2026-07-10', lastContact: '2026-07-25', notes: 'Interested in 3-month strategy engagement. Decision maker.' },
+        { id: 'L002', name: 'Sarah Williams', email: 'sarah@growthlab.com',    company: 'GrowthLab',        source: 'Referral',   status: 'Proposal',    score: 9,  value: 9000,  addedAt: '2026-07-14', lastContact: '2026-08-02', notes: 'Referred by Marcus. Needs full revenue audit + strategy.' },
+        { id: 'L003', name: 'James Park',     email: 'jpark@nextlevel.io',     company: 'NextLevel',        source: 'Cold Email', status: 'Contacted',   score: 6,  value: 3200,  addedAt: '2026-07-19', lastContact: '2026-07-22', notes: 'Responded to cold email. Wants to explore options.' },
+        { id: 'L004', name: 'Emma Rodriguez', email: 'emma@scalefast.co',      company: 'ScaleFast',        source: 'LinkedIn',   status: 'Negotiating', score: 10, value: 14000, addedAt: '2026-07-05', lastContact: '2026-08-07', notes: 'Serious buyer. Negotiating scope of engagement.' },
+        { id: 'L005', name: 'David Okafor',   email: 'd.okafor@pioneer.com',   company: 'Pioneer Solutions',source: 'Website',    status: 'New',         score: 5,  value: 2800,  addedAt: '2026-08-01', lastContact: null,         notes: 'Submitted contact form. No follow-up yet.' },
+        { id: 'L006', name: 'Lisa Tanaka',    email: 'lisa@momentum.co',       company: 'Momentum Co',      source: 'Referral',   status: 'Closed Won',  score: 9,  value: 7500,  addedAt: '2026-06-20', lastContact: '2026-07-30', notes: 'Signed 3-month consulting engagement.' },
+        { id: 'L007', name: 'Ryan Mitchell',  email: 'ryan@boldventures.io',   company: 'Bold Ventures',    source: 'LinkedIn',   status: 'Closed Won',  score: 8,  value: 5000,  addedAt: '2026-06-10', lastContact: '2026-07-15', notes: 'Signed strategy package. Happy client.' },
+        { id: 'L008', name: 'Priya Sharma',   email: 'priya@elevategrowth.com',company: 'Elevate Growth',   source: 'Cold Email', status: 'Unqualified', score: 3,  value: 0,     addedAt: '2026-07-25', lastContact: '2026-07-26', notes: 'Not a fit. Budget too low.' },
+    ],
+
+    deals: [
+        { id: 'D001', leadId: 'L002', name: 'GrowthLab Revenue Audit',         value: 9000,  stage: 'Proposal',    probability: 75,  createdAt: '2026-07-14' },
+        { id: 'D002', leadId: 'L004', name: 'ScaleFast Strategy Engagement',   value: 14000, stage: 'Negotiating', probability: 88,  createdAt: '2026-07-05' },
+        { id: 'D003', leadId: 'L001', name: 'TechCorp Consulting Retainer',    value: 5500,  stage: 'Contacted',   probability: 35,  createdAt: '2026-07-10' },
+        { id: 'D004', leadId: 'L006', name: 'Momentum Co 3-Month Program',     value: 7500,  stage: 'Closed Won',  probability: 100, createdAt: '2026-06-20' },
+        { id: 'D005', leadId: 'L007', name: 'Bold Ventures Strategy Package',  value: 5000,  stage: 'Closed Won',  probability: 100, createdAt: '2026-06-10' },
+        { id: 'D006', leadId: 'L005', name: 'Pioneer Solutions Discovery',     value: 2800,  stage: 'New',         probability: 20,  createdAt: '2026-08-01' },
+    ],
+
+    revenue: {
+        months:  ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+        monthly: [3800, 5200, 4900, 8500, 12500, 11800],
+        bySource: { LinkedIn: 14200, Referral: 12500, 'Cold Email': 5300, Website: 2800 },
+    },
+
+    content: [
+        { id: 'C001', type: 'LinkedIn Post',   topic: 'Why most consultants undercharge',  body: 'Most consultants leave 40% of their revenue on the table.\n\nNot because their work isn\'t valuable — because they price it wrong.\n\nHere\'s the 3-step framework I use to price consulting packages correctly:\n\n1. Anchor to outcome value, not hours worked\n2. Create 3 tiers (not just one package)\n3. Let the client choose their investment level\n\nIn the last quarter, this helped my clients increase their average deal size by 67%.\n\nWhat pricing mistake are you currently making? Drop it below 👇',  status: 'Published', createdAt: '2026-07-28' },
+        { id: 'C002', type: 'Cold Email',       topic: 'Revenue audit outreach',            body: 'Subject: Quick question about revenue growth at {{Company}}\n\nHi {{First Name}},\n\nI noticed {{Company}} has been scaling quickly — impressive.\n\nI work with B2B service businesses to find hidden revenue leaks and plug them within 90 days. My last client added $47K in recurring revenue without acquiring a single new customer.\n\nWould it make sense to have a 20-minute call this week?\n\nBest,\n{{Your Name}}', status: 'Published', createdAt: '2026-08-01' },
+        { id: 'C003', type: 'Follow-up Email',  topic: 'Re-engage unresponsive lead',       body: 'Subject: Thought of you, {{First Name}}\n\nHi {{First Name}},\n\nI came across something relevant to our conversation and wanted to share it — no agenda.\n\nHere\'s a quick case study on how I helped a similar business increase close rate by 40% in 60 days: [link]\n\nHope it\'s useful. Happy to chat whenever the timing is right.\n\n{{Your Name}}', status: 'Draft', createdAt: '2026-08-03' },
+    ],
+
+    agentLog: [
+        { agent: 'Lead Generation',  action: 'Found 3 new leads from LinkedIn prospecting',     timestamp: '2026-08-09T14:32:00Z' },
+        { agent: 'Content Creator',  action: 'Generated LinkedIn post: "Why most consultants undercharge"', timestamp: '2026-08-08T10:15:00Z' },
+        { agent: 'Sales & Follow-up',action: 'Queued 2 follow-up emails for stale leads',        timestamp: '2026-08-07T09:00:00Z' },
+        { agent: 'Analytics',        action: 'Generated weekly revenue insight report',           timestamp: '2026-08-06T16:45:00Z' },
+    ],
+
+    followUpQueue: [],
+    insights: [],
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════════════════
+
+let state = {};
+
+function loadState() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    state = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(INITIAL_DATA));
+}
+
+function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEAD POOL  — the agent picks from this list when "finding" new leads
+// ══════════════════════════════════════════════════════════════════════════════
+
+const LEAD_POOL = [
+    { name: 'Alex Kim',       email: 'alex@innovateco.com',  company: 'InnovateCo',   source: 'LinkedIn',   value: 4500 },
+    { name: 'Priya Anand',    email: 'priya@scalehub.io',    company: 'ScaleHub',     source: 'LinkedIn',   value: 6000 },
+    { name: 'Tom Bradley',    email: 'tom@bradleyconsult.com',company: 'Bradley & Co', source: 'Referral',   value: 8000 },
+    { name: 'Maya Johnson',   email: 'maya@nextwave.co',     company: 'NextWave',     source: 'Cold Email', value: 3500 },
+    { name: 'Carlos Rivera',  email: 'carlos@revenuepro.com',company: 'RevenuePro',   source: 'LinkedIn',   value: 5500 },
+    { name: 'Sofia Lindqvist',email: 'sofia@growthlab.se',   company: 'GrowthLab SE', source: 'Website',    value: 4000 },
+    { name: 'Nathan Brooks',  email: 'nbrooks@meridian.io',  company: 'Meridian Inc', source: 'Referral',   value: 9500 },
+    { name: 'Aisha Okafor',   email: 'aisha@boldventures.ng',company: 'Bold Ventures',source: 'LinkedIn',   value: 7000 },
+    { name: 'Kevin Lau',      email: 'klau@laustrategy.com', company: 'Lau Strategy', source: 'Cold Email', value: 3200 },
+    { name: 'Rachel Cohen',   email: 'rachel@momentum.co',   company: 'MomentumCo',  source: 'Website',    value: 5000 },
+    { name: 'Diego Morales',  email: 'diego@elevate.mx',     company: 'Elevate MX',  source: 'LinkedIn',   value: 6500 },
+    { name: 'Elena Petrov',   email: 'elena@novaconsult.eu', company: 'Nova Consult', source: 'Referral',   value: 11000 },
+    { name: 'Wei Zhang',      email: 'wei@growthops.cn',     company: 'GrowthOps',   source: 'LinkedIn',   value: 5800 },
+    { name: 'Amara Diallo',   email: 'amara@scalr.io',       company: 'Scalr',        source: 'Cold Email', value: 4200 },
+    { name: 'Jordan Hayes',   email: 'jordan@venturepoint.co',company:'VenturePoint', source: 'Referral',   value: 7800 },
+];
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONTENT TEMPLATES — picked randomly when the Content Agent generates content
+// ══════════════════════════════════════════════════════════════════════════════
+
+const CONTENT_TEMPLATES = {
+    'LinkedIn Post': [
+        (topic, niche) =>
+`Most ${niche} professionals make this mistake with ${topic}:
+
+They focus on tactics when the real problem is strategy.
+
+Here's the 3-step framework that actually works:
+
+1. Audit what's already working (you'd be surprised)
+2. Eliminate the bottom 20% of effort that produces zero results
+3. Double down on the one channel that drives 80% of your best clients
+
+In the last 90 days, this helped one of my clients grow revenue by 34% without adding a single new service.
+
+What's your biggest challenge with ${topic}? Drop it below 👇`,
+
+        (topic, niche) =>
+`Controversial take: Most people approach ${topic} completely backwards.
+
+They start with tactics. They should start with positioning.
+
+Here's what changes when you get positioning right:
+
+✅ You attract better clients (who pay more)
+✅ You stop competing on price
+✅ Sales conversations become 3× easier
+
+I've seen this transform ${niche.toLowerCase()} businesses in 60 days or less.
+
+Are you still leading with tactics? Here's the fix:
+
+→ Identify your one ideal client type
+→ Define the specific outcome you deliver
+→ Make that the first thing on every platform
+
+Simple. Not easy. Worth it.
+
+Agree or disagree? Tell me in the comments.`,
+
+        (topic, niche) =>
+`6 months ago, a client came to me stuck on ${topic}.
+
+Revenue was flat. Pipeline was dry. They'd tried everything.
+
+In 90 days, here's what we changed:
+
+→ Repositioned their offer from "consulting" to "outcomes"
+→ Rebuilt their outreach sequence (3 touchpoints, not 1)
+→ Raised prices by 40% — and lost zero clients
+
+Result: $67K in new revenue in one quarter.
+
+The lesson? ${topic} problems are almost always ${niche.toLowerCase()} strategy problems in disguise.
+
+DM me if you want to see the exact framework we used.`,
+    ],
+
+    'Cold Email': [
+        (topic, niche) =>
+`Subject: Quick question about ${topic} at {{Company}}
+
+Hi {{First Name}},
+
+I noticed {{Company}} has been scaling — congrats on the growth.
+
+I work with ${niche.toLowerCase()} businesses to improve ${topic} and typically see results within 90 days. My last client added $40K in recurring revenue without any new marketing spend.
+
+Would a 20-minute call make sense to see if I can do something similar for {{Company}}?
+
+Best,
+{{Your Name}}`,
+
+        (topic, niche) =>
+`Subject: {{Company}}'s approach to ${topic}
+
+Hi {{First Name}},
+
+Most ${niche.toLowerCase()} founders I talk to are dealing with the same ${topic} challenge right now.
+
+If that's true for you, I might be able to help. I recently worked with a similar business — took them from stuck to scaling in 60 days, specifically around ${topic}.
+
+Worth a quick call to see if the same approach could work for {{Company}}?
+
+{{Your Name}}`,
+    ],
+
+    'Follow-up Email': [
+        (topic, niche) =>
+`Subject: Re: ${topic}
+
+Hi {{First Name}},
+
+Just circling back — I know things get hectic.
+
+If the timing isn't right for ${topic}, no worries at all. Happy to reconnect next quarter.
+
+But if you're still thinking about it, I have one slot opening up this month.
+
+{{Your Name}}`,
+
+        (topic, niche) =>
+`Subject: Thought of you, {{First Name}}
+
+Hi {{First Name}},
+
+I came across something relevant to ${topic} and wanted to share it — no agenda.
+
+[Insert: a quick insight or win relevant to their specific situation]
+
+Hope it's useful. Happy to jump on a call whenever you're ready.
+
+{{Your Name}}`,
+
+        (topic, niche) =>
+`Subject: Last note from me, {{First Name}}
+
+Hi {{First Name}},
+
+I don't want to be a pest, so this will be my last message about ${topic} for now.
+
+If things change and you'd like to explore how I can help, the door's always open.
+
+Wishing you and {{Company}} all the best.
+
+{{Your Name}}`,
+    ],
+
+    'Proposal Intro': [
+        (topic, niche) =>
+`PROPOSAL: ${topic}
+Prepared for {{Company}}  |  ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+
+────────────────────────────────────
+EXECUTIVE SUMMARY
+────────────────────────────────────
+
+This proposal outlines a focused 90-day engagement to help {{Company}} solve ${topic} and achieve measurable results.
+
+Based on our conversation, the core challenges are:
+• [Challenge 1 — fill in from discovery call]
+• [Challenge 2 — fill in from discovery call]
+• [Challenge 3 — fill in from discovery call]
+
+This engagement is designed to address all three.
+
+────────────────────────────────────
+WHAT YOU WILL GET
+────────────────────────────────────
+
+✓ Full audit of current ${topic} approach
+✓ Custom strategy roadmap (90-day plan)
+✓ Weekly implementation sessions (60 min each)
+✓ Async support via email/Slack
+✓ Monthly progress review + reporting
+
+────────────────────────────────────
+INVESTMENT
+────────────────────────────────────
+
+This engagement is priced at $[X] for the full 90-day program.
+
+Payment options:
+  • Paid in full: save 10%
+  • 3 monthly installments: [X/3] per month
+
+────────────────────────────────────
+NEXT STEPS
+────────────────────────────────────
+
+1. Review this proposal and note any questions
+2. Reply to confirm you'd like to proceed
+3. I'll send the contract and first invoice
+
+Ready to get started? Reply "yes" and we'll kick things off.`,
+    ],
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function uid() {
+    return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+function fmt(n) {
+    return '$' + Number(n).toLocaleString();
+}
+
+function timeAgo(isoString) {
+    if (!isoString) return 'Never';
+    const diff = Date.now() - new Date(isoString).getTime();
+    const h = Math.floor(diff / 3600000);
+    const d = Math.floor(h / 24);
+    if (d > 1) return `${d}d ago`;
+    if (d === 1) return 'Yesterday';
+    if (h > 0) return `${h}h ago`;
+    return 'Just now';
+}
+
+function statusBadge(status) {
+    const map = {
+        'New':         'badge-blue',
+        'Contacted':   'badge-amber',
+        'Qualified':   'badge-purple',
+        'Proposal':    'badge-amber',
+        'Negotiating': 'badge-amber',
+        'Closed Won':  'badge-green',
+        'Closed Lost': 'badge-red',
+        'Unqualified': 'badge-grey',
+        'Published':   'badge-green',
+        'Draft':       'badge-grey',
+    };
+    return `<span class="badge ${map[status] || 'badge-grey'}">${status}</span>`;
+}
+
+function scoreFillClass(score) {
+    if (score >= 8) return 'high';
+    if (score >= 5) return 'mid';
+    return 'low';
+}
+
+function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function setDot(agent, state) {
+    const map = { leads: 'dot-leads', sales: 'dot-sales', content: 'dot-content', analytics: 'dot-analytics' };
+    const el = document.getElementById(map[agent]);
+    if (!el) return;
+    el.className = 'dot' + (state === 'running' ? ' running' : '');
+}
+
+function logActivity(agent, action) {
+    state.agentLog.unshift({ agent, action, timestamp: new Date().toISOString() });
+    if (state.agentLog.length > 20) state.agentLog.pop();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ROUTER
+// ══════════════════════════════════════════════════════════════════════════════
+
+const VIEWS = { dashboard: viewDashboard, leads: viewLeads, sales: viewSales, content: viewContent, analytics: viewAnalytics };
+
+function getView() {
+    return location.hash.slice(1) || 'dashboard';
+}
+
+function renderView(view) {
+    const renderer = VIEWS[view] || VIEWS.dashboard;
+    document.getElementById('main').innerHTML = renderer();
+    afterRender(view);
+}
+
+function updateNav(view) {
+    document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.view === view);
+    });
+}
+
+window.addEventListener('hashchange', () => {
+    const v = getView();
+    renderView(v);
+    updateNav(v);
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function viewDashboard() {
+    const openDeals = state.deals.filter(d => !['Closed Won', 'Closed Lost'].includes(d.stage));
+    const pipeline  = openDeals.reduce((s, d) => s + d.value * (d.probability / 100), 0);
+    const wonRevenue = state.deals.filter(d => d.stage === 'Closed Won').reduce((s, d) => s + d.value, 0);
+    const activeLeads = state.leads.filter(l => !['Closed Won', 'Closed Lost', 'Unqualified'].includes(l.status)).length;
+    const avgDeal = openDeals.length ? Math.round(openDeals.reduce((s, d) => s + d.value, 0) / openDeals.length) : 0;
+
+    const prevMonth = state.revenue.monthly.slice(-2, -1)[0];
+    const thisMonth = state.revenue.monthly.slice(-1)[0];
+    const moDelta   = prevMonth ? Math.round((thisMonth - prevMonth) / prevMonth * 100) : 0;
+
+    const topLeads = [...state.leads]
+        .filter(l => l.status !== 'Unqualified')
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+    return `
+<div class="view-header">
+    <div>
+        <h1>Good morning, ${state.settings.userName.split(' ')[0]} 👋</h1>
+        <p>Here's your revenue overview for today.</p>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <span class="stat-label">This Month Revenue</span>
+        <span class="stat-value">${fmt(thisMonth)}</span>
+        <span class="stat-delta ${moDelta < 0 ? 'down' : ''}">${moDelta >= 0 ? '↑' : '↓'} ${Math.abs(moDelta)}% vs last month</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Weighted Pipeline</span>
+        <span class="stat-value">${fmt(Math.round(pipeline))}</span>
+        <span class="stat-delta">${openDeals.length} open deals</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Active Leads</span>
+        <span class="stat-value">${activeLeads}</span>
+        <span class="stat-delta">${state.leads.filter(l => l.status === 'New').length} new this week</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Avg Deal Size</span>
+        <span class="stat-value">${fmt(avgDeal)}</span>
+        <span class="stat-delta">${state.deals.filter(d => d.stage === 'Closed Won').length} closed</span>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;">
+
+    <div class="card">
+        <div class="card-title">Top Leads by Score</div>
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Name</th><th>Company</th><th>Status</th><th>Score</th><th>Value</th></tr></thead>
+            <tbody>
+            ${topLeads.map(l => `
+            <tr>
+                <td><strong>${l.name}</strong><br><span style="font-size:0.8rem;color:var(--muted)">${l.source}</span></td>
+                <td>${l.company}</td>
+                <td>${statusBadge(l.status)}</td>
+                <td>
+                    <div class="score-bar">
+                        <div class="score-track"><div class="score-fill ${scoreFillClass(l.score)}" style="width:${l.score * 10}%"></div></div>
+                        <span style="font-size:0.8rem;font-weight:600">${l.score}</span>
+                    </div>
+                </td>
+                <td style="font-weight:600">${fmt(l.value)}</td>
+            </tr>`).join('')}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Agent Activity</div>
+        ${state.agentLog.slice(0, 6).map(entry => `
+        <div class="log-item">
+            <div class="log-dot"></div>
+            <div>
+                <span class="log-agent">${entry.agent}</span><br>
+                <span style="font-size:0.83rem;color:var(--muted)">${entry.action}</span>
+            </div>
+            <span class="log-time">${timeAgo(entry.timestamp)}</span>
+        </div>`).join('')}
+    </div>
+
+</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEADS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function viewLeads() {
+    const counts = {
+        All:       state.leads.length,
+        New:       state.leads.filter(l => l.status === 'New').length,
+        Active:    state.leads.filter(l => ['Contacted','Qualified','Proposal','Negotiating'].includes(l.status)).length,
+        'Closed Won': state.leads.filter(l => l.status === 'Closed Won').length,
+    };
+
+    const filter = window._leadFilter || 'All';
+    const filtered = filter === 'All' ? state.leads :
+                     filter === 'Active' ? state.leads.filter(l => ['Contacted','Qualified','Proposal','Negotiating'].includes(l.status)) :
+                     state.leads.filter(l => l.status === filter);
+
+    return `
+<div class="view-header">
+    <div>
+        <h1>🎯 Lead Generation Agent</h1>
+        <p>Automatically finds and qualifies new consulting leads.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="toggleAddLead()">+ Add Lead</button>
+        <button class="btn btn-run" id="btn-run-leads" onclick="runLeadAgent()">▶ Run Agent</button>
+    </div>
+</div>
+
+<!-- Add Lead Form (hidden by default) -->
+<div class="add-lead-form" id="add-lead-form">
+    <div class="card-title">Add New Lead</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="f-name" placeholder="Jane Smith">
+        </div>
+        <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="f-email" placeholder="jane@company.com">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Company</label>
+            <input type="text" id="f-company" placeholder="Acme Corp">
+        </div>
+        <div class="form-group">
+            <label>Source</label>
+            <select id="f-source">
+                <option>LinkedIn</option>
+                <option>Referral</option>
+                <option>Cold Email</option>
+                <option>Website</option>
+                <option>Event</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Est. Value ($)</label>
+            <input type="number" id="f-value" placeholder="5000">
+        </div>
+        <div class="form-group">
+            <label>Lead Score (1–10)</label>
+            <input type="number" id="f-score" min="1" max="10" placeholder="7">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Notes</label>
+        <textarea id="f-notes" rows="2" placeholder="Key details about this lead..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="submitAddLead()">Save Lead</button>
+        <button class="btn btn-ghost" onclick="toggleAddLead()">Cancel</button>
+    </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="tabs">
+    ${Object.entries(counts).map(([label, count]) =>
+        `<button class="tab ${filter === label ? 'active' : ''}" onclick="setLeadFilter('${label}')">${label} (${count})</button>`
+    ).join('')}
+</div>
+
+<div class="card">
+    <div class="table-wrap">
+    <table>
+        <thead><tr><th>Name</th><th>Company</th><th>Source</th><th>Status</th><th>Score</th><th>Value</th><th>Last Contact</th><th>Actions</th></tr></thead>
+        <tbody>
+        ${filtered.length === 0 ? `<tr><td colspan="8"><div class="empty"><div class="empty-icon">🎯</div>No leads found. Run the agent or add one manually.</div></td></tr>` :
+        filtered.map(l => `
+        <tr>
+            <td>
+                <strong>${l.name}</strong><br>
+                <span style="font-size:0.8rem;color:var(--muted)">${l.email}</span>
+            </td>
+            <td>${l.company}</td>
+            <td><span class="badge badge-grey">${l.source}</span></td>
+            <td>
+                <select class="status-select" style="font-size:0.82rem;padding:4px 8px;border-radius:4px;border:1px solid var(--border)"
+                    onchange="updateLeadStatus('${l.id}', this.value)">
+                    ${['New','Contacted','Qualified','Proposal','Negotiating','Closed Won','Unqualified'].map(s =>
+                        `<option ${s === l.status ? 'selected' : ''}>${s}</option>`
+                    ).join('')}
+                </select>
+            </td>
+            <td>
+                <div class="score-bar">
+                    <div class="score-track"><div class="score-fill ${scoreFillClass(l.score)}" style="width:${l.score * 10}%"></div></div>
+                    <span style="font-size:0.8rem;font-weight:600">${l.score}</span>
+                </div>
+            </td>
+            <td style="font-weight:600">${l.value > 0 ? fmt(l.value) : '—'}</td>
+            <td style="font-size:0.83rem;color:var(--muted)">${l.lastContact ? timeAgo(l.lastContact) : '<span style="color:var(--red)">Never</span>'}</td>
+            <td><button class="btn btn-sm btn-danger" onclick="deleteLead('${l.id}')">Remove</button></td>
+        </tr>`).join('')}
+        </tbody>
+    </table>
+    </div>
+</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SALES VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+const PIPELINE_STAGES = ['New', 'Contacted', 'Proposal', 'Negotiating', 'Closed Won'];
+
+function viewSales() {
+    const queue = state.followUpQueue || [];
+
+    return `
+<div class="view-header">
+    <div>
+        <h1>💼 Sales & Follow-up Agent</h1>
+        <p>Manages your pipeline and generates follow-up messages automatically.</p>
+    </div>
+    <button class="btn btn-run" id="btn-run-sales" onclick="runSalesAgent()">▶ Run Agent</button>
+</div>
+
+<!-- Pipeline board -->
+<div class="pipeline">
+${PIPELINE_STAGES.map(stage => {
+    const stageDeals = state.deals.filter(d => d.stage === stage);
+    const stageTotal = stageDeals.reduce((s, d) => s + d.value, 0);
+    return `
+    <div class="pipeline-col">
+        <div class="pipeline-col-header">
+            <span>${stage}</span>
+            <span class="pipeline-total">${fmt(stageTotal)}</span>
+        </div>
+        ${stageDeals.length === 0 ? '<div style="font-size:0.82rem;color:var(--muted);text-align:center;padding:12px 0">Empty</div>' :
+        stageDeals.map(d => {
+            const lead = state.leads.find(l => l.id === d.leadId);
+            return `
+            <div class="deal-card">
+                <div class="deal-name">${d.name}</div>
+                <div class="deal-value">${fmt(d.value)}</div>
+                <div class="deal-prob">${d.probability}% probability</div>
+                ${lead ? `<div style="font-size:0.78rem;color:var(--muted);margin-top:4px">${lead.company}</div>` : ''}
+                ${stage !== 'Closed Won' ? `
+                <button class="btn btn-sm btn-secondary" style="margin-top:8px;width:100%"
+                    onclick="advanceDeal('${d.id}')">Move to next stage →</button>` : ''}
+            </div>`;
+        }).join('')}
+    </div>`;
+}).join('')}
+</div>
+
+<!-- Follow-up queue -->
+<div class="card">
+    <div class="card-title">
+        Follow-up Queue
+        <span style="font-size:0.82rem;font-weight:400;color:var(--muted)">Generated by the Sales Agent</span>
+    </div>
+    ${queue.length === 0 ? `
+    <div class="empty">
+        <div class="empty-icon">📭</div>
+        Run the Sales Agent to generate follow-up messages for leads that need attention.
+    </div>` :
+    queue.map((item, i) => `
+    <div class="followup-item">
+        <div class="followup-to">To: <strong>${item.to}</strong> &nbsp;·&nbsp; ${item.company} &nbsp;·&nbsp; ${statusBadge(item.status)}</div>
+        <div class="followup-body">${item.body}</div>
+        <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm" onclick="markSent(${i})">✓ Mark as Sent</button>
+            <button class="btn btn-ghost btn-sm" onclick="dismissFollowup(${i})">Dismiss</button>
+        </div>
+    </div>`).join('')}
+</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONTENT VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function viewContent() {
+    return `
+<div class="view-header">
+    <div>
+        <h1>✍️ Content Creator Agent</h1>
+        <p>Generates LinkedIn posts, cold emails, follow-ups, and proposals.</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+    <!-- Generator panel -->
+    <div class="card">
+        <div class="card-title">Generate Content</div>
+        <div class="form-group">
+            <label>Content Type</label>
+            <select id="c-type">
+                <option>LinkedIn Post</option>
+                <option>Cold Email</option>
+                <option>Follow-up Email</option>
+                <option>Proposal Intro</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Topic or Goal</label>
+            <input type="text" id="c-topic" placeholder="e.g. Why consultants undercharge, Revenue audit offer">
+        </div>
+        <div class="form-group">
+            <label>Your Niche / Context <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+            <input type="text" id="c-niche" placeholder="${state.settings.niche}" value="${state.settings.niche}">
+        </div>
+        <button class="btn btn-run" id="btn-run-content" onclick="runContentAgent()" style="width:100%;margin-bottom:16px">
+            ▶ Generate
+        </button>
+        <div class="form-group">
+            <label>Output</label>
+            <div class="content-output" id="content-output">Your generated content will appear here...</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-secondary btn-sm" onclick="copyContent()">Copy</button>
+            <button class="btn btn-primary btn-sm" onclick="saveContent()">Save to Library</button>
+        </div>
+    </div>
+
+    <!-- Library panel -->
+    <div class="card">
+        <div class="card-title">Content Library <span style="font-size:0.82rem;font-weight:400;color:var(--muted)">${state.content.length} pieces</span></div>
+        ${state.content.length === 0 ? `<div class="empty"><div class="empty-icon">📝</div>No content yet. Generate your first piece.</div>` :
+        [...state.content].reverse().map(c => `
+        <div class="content-item">
+            <div class="content-item-header">
+                <span class="content-item-topic">${c.topic}</span>
+                <div style="display:flex;gap:6px;align-items:center">
+                    ${statusBadge(c.status)}
+                    <button class="btn btn-sm btn-ghost" onclick="loadContent('${c.id}')">Load</button>
+                </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+                <span class="badge badge-purple">${c.type}</span>
+                <span style="font-size:0.78rem;color:var(--muted)">${timeAgo(c.createdAt)}</span>
+            </div>
+            <div class="content-item-preview">${c.body.slice(0, 100)}…</div>
+        </div>`).join('')}
+    </div>
+
+</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ANALYTICS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function viewAnalytics() {
+    return `
+<div class="view-header">
+    <div>
+        <h1>📈 Analytics Agent</h1>
+        <p>Tracks your revenue trends and surfaces actionable insights.</p>
+    </div>
+    <button class="btn btn-run" id="btn-run-analytics" onclick="runAnalyticsAgent()">▶ Run Agent</button>
+</div>
+
+<div class="chart-grid">
+    <div class="chart-box">
+        <div class="card-title">Revenue by Month</div>
+        <canvas id="chart-revenue"></canvas>
+    </div>
+    <div class="chart-box">
+        <div class="card-title">Revenue by Source</div>
+        <canvas id="chart-source"></canvas>
+    </div>
+</div>
+
+<!-- Conversion funnel -->
+<div class="card" style="margin-bottom:20px">
+    <div class="card-title">Lead Conversion Funnel</div>
+    <div style="display:flex;gap:0;overflow-x:auto">
+        ${['New','Contacted','Qualified','Proposal','Negotiating','Closed Won'].map(stage => {
+            const count = state.leads.filter(l => l.status === stage).length;
+            const pct   = state.leads.length ? Math.round(count / state.leads.length * 100) : 0;
+            return `
+            <div style="flex:1;min-width:90px;text-align:center;padding:12px 6px;border-right:1px solid var(--border)">
+                <div style="font-size:1.6rem;font-weight:700;color:var(--brand)">${count}</div>
+                <div style="font-size:0.75rem;color:var(--muted);margin:2px 0">${stage}</div>
+                <div style="font-size:0.82rem;font-weight:600;color:var(--text)">${pct}%</div>
+            </div>`;
+        }).join('')}
+    </div>
+</div>
+
+<!-- Insights -->
+<div class="card">
+    <div class="card-title">AI Insights</div>
+    ${state.insights && state.insights.length > 0 ?
+        state.insights.map(ins => `<div class="insight-item ${ins.type}">${ins.text}</div>`).join('') :
+        `<div class="empty"><div class="empty-icon">💡</div>Run the Analytics Agent to generate personalized insights from your data.</div>`
+    }
+</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AFTER RENDER — binds charts and events after HTML is injected
+// ══════════════════════════════════════════════════════════════════════════════
+
+const chartInstances = {};
+
+function afterRender(view) {
+    // Destroy old chart instances to avoid "canvas already in use" errors
+    Object.values(chartInstances).forEach(c => c.destroy());
+    Object.keys(chartInstances).forEach(k => delete chartInstances[k]);
+
+    if (view === 'analytics') {
+        renderCharts();
+    }
+
+    // Update sidebar user info
+    const nameEl = document.getElementById('sidebar-username');
+    const avatarEl = document.getElementById('sidebar-avatar');
+    if (nameEl) nameEl.textContent = state.settings.userName;
+    if (avatarEl) avatarEl.textContent = state.settings.initials;
+}
+
+function renderCharts() {
+    const revenueCtx = document.getElementById('chart-revenue');
+    const sourceCtx  = document.getElementById('chart-source');
+
+    if (revenueCtx) {
+        chartInstances.revenue = new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: state.revenue.months,
+                datasets: [{
+                    label: 'Revenue',
+                    data: state.revenue.monthly,
+                    backgroundColor: 'rgba(123,74,234,0.75)',
+                    borderRadius: 5,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { callback: v => '$' + (v / 1000).toFixed(0) + 'k' } },
+                },
+            },
+        });
+    }
+
+    if (sourceCtx) {
+        const src = state.revenue.bySource;
+        chartInstances.source = new Chart(sourceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(src),
+                datasets: [{
+                    data: Object.values(src),
+                    backgroundColor: ['#7B4AEA', '#22c55e', '#f59e0b', '#3b82f6'],
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } },
+            },
+        });
+    }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AGENT RUNNERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function runLeadAgent() {
+    const btn = document.getElementById('btn-run-leads');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Scanning…';
+    setDot('leads', 'running');
+
+    setTimeout(() => {
+        // Pick 2–3 leads from pool not already in state
+        const existing = new Set(state.leads.map(l => l.email));
+        const pool = LEAD_POOL.filter(p => !existing.has(p.email));
+        const count = Math.min(pool.length, 2 + Math.floor(Math.random() * 2));
+        const picked = pool.sort(() => Math.random() - 0.5).slice(0, count);
+
+        picked.forEach(p => {
+            state.leads.unshift({
+                id: 'L' + uid(),
+                name: p.name,
+                email: p.email,
+                company: p.company,
+                source: p.source,
+                status: 'New',
+                score: 5 + Math.floor(Math.random() * 5),
+                value: p.value,
+                addedAt: new Date().toISOString().slice(0, 10),
+                lastContact: null,
+                notes: `Found by Lead Gen Agent via ${p.source}.`,
+            });
+        });
+
+        logActivity('Lead Generation', `Found ${count} new lead${count !== 1 ? 's' : ''} from LinkedIn, cold email, and referrals`);
+        saveState();
+        setDot('leads', 'active');
+        showToast(`✅ Agent found ${count} new lead${count !== 1 ? 's' : ''}!`);
+        window._leadFilter = 'New';
+        renderView('leads');
+        updateNav('leads');
+    }, 2600);
+}
+
+function runSalesAgent() {
+    const btn = document.getElementById('btn-run-sales');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Reviewing pipeline…';
+    setDot('sales', 'running');
+
+    setTimeout(() => {
+        // Find leads needing follow-up (New with no contact, or stale)
+        const needsFollowUp = state.leads.filter(l =>
+            ['New', 'Contacted', 'Proposal'].includes(l.status) &&
+            l.status !== 'Unqualified'
+        ).slice(0, 3);
+
+        const messages = {
+            New: (l) =>
+`Subject: Quick question about ${l.company}
+
+Hi ${l.name.split(' ')[0]},
+
+I noticed ${l.company} was recently referred to me — I'd love to learn more about what you're working on.
+
+I work with consulting and service businesses to grow revenue predictably. Would it make sense to jump on a 20-minute call this week?
+
+Best,
+${state.settings.userName}`,
+            Contacted: (l) =>
+`Subject: Circling back, ${l.name.split(' ')[0]}
+
+Hi ${l.name.split(' ')[0]},
+
+Just following up on my last message — I know things get hectic.
+
+If the timing isn't right, no worries at all. But if you're open to it, I have one slot available this month.
+
+Let me know either way.
+
+${state.settings.userName}`,
+            Proposal: (l) =>
+`Subject: Any questions on the proposal?
+
+Hi ${l.name.split(' ')[0]},
+
+I wanted to check in on the proposal I sent over. Happy to walk through it on a call or answer any questions by email.
+
+What are your thoughts so far?
+
+${state.settings.userName}`,
+        };
+
+        state.followUpQueue = needsFollowUp.map(l => ({
+            to: l.name,
+            company: l.company,
+            status: l.status,
+            body: (messages[l.status] || messages['Contacted'])(l),
+        }));
+
+        logActivity('Sales & Follow-up', `Queued ${needsFollowUp.length} follow-up message${needsFollowUp.length !== 1 ? 's' : ''} for pipeline review`);
+        saveState();
+        setDot('sales', 'active');
+        showToast(`✅ Generated ${needsFollowUp.length} follow-up message${needsFollowUp.length !== 1 ? 's' : ''}!`);
+        renderView('sales');
+        updateNav('sales');
+    }, 2400);
+}
+
+function runContentAgent() {
+    const btn   = document.getElementById('btn-run-content');
+    const type  = document.getElementById('c-type')?.value;
+    const topic = document.getElementById('c-topic')?.value.trim();
+    const niche = document.getElementById('c-niche')?.value.trim() || state.settings.niche;
+
+    if (!topic) { showToast('Please enter a topic first.'); return; }
+    if (!btn || btn.disabled) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Generating…';
+    setDot('content', 'running');
+
+    setTimeout(() => {
+        const templates = CONTENT_TEMPLATES[type] || CONTENT_TEMPLATES['LinkedIn Post'];
+        const template  = templates[Math.floor(Math.random() * templates.length)];
+        const output    = template(topic, niche);
+
+        const outEl = document.getElementById('content-output');
+        if (outEl) outEl.textContent = output;
+
+        // Stash for save
+        window._pendingContent = { type, topic, body: output, niche };
+
+        btn.disabled = false;
+        btn.innerHTML = '▶ Generate';
+        setDot('content', 'active');
+        logActivity('Content Creator', `Generated ${type}: "${topic}"`);
+        saveState();
+        showToast(`✅ ${type} generated!`);
+    }, 2000);
+}
+
+function runAnalyticsAgent() {
+    const btn = document.getElementById('btn-run-analytics');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Analyzing…';
+    setDot('analytics', 'running');
+
+    setTimeout(() => {
+        const insights = generateInsights();
+        state.insights = insights;
+        logActivity('Analytics', 'Generated revenue insights and growth recommendations');
+        saveState();
+        setDot('analytics', 'active');
+        showToast('✅ Analytics insights ready!');
+        renderView('analytics');
+        updateNav('analytics');
+    }, 2800);
+}
+
+function generateInsights() {
+    const leads   = state.leads;
+    const deals   = state.deals;
+    const rev     = state.revenue.monthly;
+    const lastTwo = rev.slice(-2);
+    const trend   = lastTwo[1] >= lastTwo[0];
+    const trendPct= lastTwo[0] ? Math.round(Math.abs(lastTwo[1] - lastTwo[0]) / lastTwo[0] * 100) : 0;
+
+    // Best converting source
+    const bySource = {};
+    leads.forEach(l => {
+        if (!bySource[l.source]) bySource[l.source] = { total: 0, won: 0 };
+        bySource[l.source].total++;
+        if (l.status === 'Closed Won') bySource[l.source].won++;
+    });
+    let bestSrc = null, bestRate = 0;
+    Object.entries(bySource).forEach(([src, d]) => {
+        const r = d.total > 0 ? d.won / d.total : 0;
+        if (r > bestRate) { bestRate = r; bestSrc = src; }
+    });
+
+    const openDeals     = deals.filter(d => !['Closed Won','Closed Lost'].includes(d.stage));
+    const weightedPipe  = Math.round(openDeals.reduce((s, d) => s + d.value * (d.probability / 100), 0));
+    const newLeads      = leads.filter(l => l.status === 'New').length;
+    const neverContacted= leads.filter(l => !l.lastContact && l.status !== 'Unqualified').length;
+
+    return [
+        {
+            type: trend ? 'positive' : 'warning',
+            text: `📊 Revenue is ${trend ? 'up' : 'down'} ${trendPct}% month-over-month (${fmt(lastTwo[0])} → ${fmt(lastTwo[1])}). ${trend ? 'Momentum is strong — this is a great time to raise your rates.' : 'Focus on closing the deals in your pipeline to recover.'}`,
+        },
+        bestSrc ? {
+            type: 'positive',
+            text: `🎯 ${bestSrc} is your highest-converting lead source (${Math.round(bestRate * 100)}% close rate). Consider increasing your ${bestSrc} activity by 50% this month.`,
+        } : null,
+        {
+            type: '',
+            text: `💰 Your weighted pipeline is ${fmt(weightedPipe)}. Priority: close the ${deals.find(d => d.stage === 'Negotiating')?.name || 'deals in negotiation'} first — they have the highest close probability.`,
+        },
+        neverContacted > 0 ? {
+            type: 'warning',
+            text: `⚠️ You have ${neverContacted} lead${neverContacted > 1 ? 's' : ''} that ${neverContacted > 1 ? 'have' : 'has'} never been contacted. Run the Sales Agent to generate outreach messages for them now.`,
+        } : null,
+    ].filter(Boolean);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LEAD ACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function toggleAddLead() {
+    const el = document.getElementById('add-lead-form');
+    if (el) el.classList.toggle('open');
+}
+
+function submitAddLead() {
+    const name  = document.getElementById('f-name')?.value.trim();
+    const email = document.getElementById('f-email')?.value.trim();
+    if (!name || !email) { showToast('Name and email are required.'); return; }
+
+    state.leads.unshift({
+        id: 'L' + uid(),
+        name,
+        email,
+        company:  document.getElementById('f-company')?.value.trim() || '',
+        source:   document.getElementById('f-source')?.value || 'Other',
+        status:   'New',
+        score:    parseInt(document.getElementById('f-score')?.value) || 5,
+        value:    parseInt(document.getElementById('f-value')?.value) || 0,
+        addedAt:  new Date().toISOString().slice(0, 10),
+        lastContact: null,
+        notes:    document.getElementById('f-notes')?.value.trim() || '',
+    });
+
+    saveState();
+    showToast('✅ Lead added!');
+    window._leadFilter = 'All';
+    renderView('leads');
+    updateNav('leads');
+}
+
+function deleteLead(id) {
+    state.leads = state.leads.filter(l => l.id !== id);
+    state.deals = state.deals.filter(d => d.leadId !== id);
+    saveState();
+    renderView('leads');
+    updateNav('leads');
+}
+
+function updateLeadStatus(id, status) {
+    const lead = state.leads.find(l => l.id === id);
+    if (lead) {
+        lead.status = status;
+        lead.lastContact = new Date().toISOString().slice(0, 10);
+        saveState();
+        showToast(`Lead updated to "${status}"`);
+    }
+}
+
+function setLeadFilter(filter) {
+    window._leadFilter = filter;
+    renderView('leads');
+    updateNav('leads');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SALES ACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function advanceDeal(id) {
+    const deal = state.deals.find(d => d.id === id);
+    if (!deal) return;
+    const idx = PIPELINE_STAGES.indexOf(deal.stage);
+    if (idx < PIPELINE_STAGES.length - 1) {
+        deal.stage = PIPELINE_STAGES[idx + 1];
+        deal.probability = [20, 40, 60, 80, 100][idx + 1] || 100;
+
+        // Sync lead status
+        const lead = state.leads.find(l => l.id === deal.leadId);
+        if (lead && deal.stage !== 'Closed Won') lead.status = deal.stage;
+        if (lead && deal.stage === 'Closed Won') lead.status = 'Closed Won';
+        if (lead) lead.lastContact = new Date().toISOString().slice(0, 10);
+
+        saveState();
+        showToast(`Deal moved to "${deal.stage}"`);
+        renderView('sales');
+        updateNav('sales');
+    }
+}
+
+function markSent(i) {
+    state.followUpQueue.splice(i, 1);
+    saveState();
+    showToast('✅ Follow-up marked as sent.');
+    renderView('sales');
+    updateNav('sales');
+}
+
+function dismissFollowup(i) {
+    state.followUpQueue.splice(i, 1);
+    saveState();
+    renderView('sales');
+    updateNav('sales');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONTENT ACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function copyContent() {
+    const text = document.getElementById('content-output')?.textContent;
+    if (text && text !== 'Your generated content will appear here...') {
+        navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!'));
+    }
+}
+
+function saveContent() {
+    const pending = window._pendingContent;
+    if (!pending) { showToast('Generate content first.'); return; }
+    state.content.push({
+        id:        'C' + uid(),
+        type:      pending.type,
+        topic:     pending.topic,
+        body:      pending.body,
+        status:    'Draft',
+        createdAt: new Date().toISOString(),
+    });
+    saveState();
+    showToast('✅ Saved to Content Library!');
+}
+
+function loadContent(id) {
+    const piece = state.content.find(c => c.id === id);
+    if (!piece) return;
+    const outEl = document.getElementById('content-output');
+    const typeEl = document.getElementById('c-type');
+    const topicEl = document.getElementById('c-topic');
+    if (outEl) outEl.textContent = piece.body;
+    if (typeEl) typeEl.value = piece.type;
+    if (topicEl) topicEl.value = piece.topic;
+    window._pendingContent = { type: piece.type, topic: piece.topic, body: piece.body };
+    showToast('Content loaded into editor.');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════════════
+
+function init() {
+    loadState();
+    ['leads', 'sales', 'content', 'analytics'].forEach(a => setDot(a, 'active'));
+
+    const view = getView();
+    renderView(view);
+    updateNav(view);
+}
+
+document.addEventListener('DOMContentLoaded', init);

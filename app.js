@@ -343,7 +343,7 @@ function logActivity(agent, action) {
 // ROUTER
 // ══════════════════════════════════════════════════════════════════════════════
 
-const VIEWS = { dashboard: viewDashboard, leads: viewLeads, sales: viewSales, content: viewContent, analytics: viewAnalytics };
+const VIEWS = { dashboard: viewDashboard, leads: viewLeads, sales: viewSales, content: viewContent, analytics: viewAnalytics, pricing: viewPricing, settings: viewSettings };
 
 function getView() {
     return location.hash.slice(1) || 'dashboard';
@@ -1193,12 +1193,303 @@ function loadContent(id) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// PRICING AGENT VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function viewPricing() {
+    const tiers = state.pricingTiers || null;
+
+    return `
+<div class="view-header">
+    <div>
+        <h1>💰 Pricing Agent</h1>
+        <p>Designs your 3-tier consulting packages and calculates value-based rates.</p>
+    </div>
+    <button class="btn btn-run" id="btn-run-pricing" onclick="runPricingAgent()">▶ Generate Packages</button>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+    <!-- Rate calculator -->
+    <div class="card">
+        <div class="card-title">Rate Calculator</div>
+        <div class="form-group">
+            <label>Target Annual Revenue ($)</label>
+            <input type="number" id="p-revenue" placeholder="120000" value="${state.settings.targetRevenue || ''}">
+        </div>
+        <div class="form-group">
+            <label>Client slots per month</label>
+            <input type="number" id="p-slots" placeholder="4" value="${state.settings.clientSlots || ''}">
+        </div>
+        <div class="form-group">
+            <label>Avg engagement length (months)</label>
+            <input type="number" id="p-months" placeholder="3" value="${state.settings.engagementMonths || ''}">
+        </div>
+        <div class="form-group">
+            <label>Your niche / service</label>
+            <input type="text" id="p-niche" placeholder="${state.settings.niche}" value="${state.settings.niche}">
+        </div>
+        <button class="btn btn-primary" onclick="calcRate()" style="width:100%">Calculate My Rates</button>
+        <div class="calc-result" id="calc-result" style="display:none"></div>
+    </div>
+
+    <!-- Package generator -->
+    <div class="card">
+        <div class="card-title">3-Tier Package Builder</div>
+        ${tiers ? renderTiers(tiers) : `
+        <div class="empty">
+            <div class="empty-icon">💰</div>
+            Fill in the rate calculator and click <strong>Generate Packages</strong> to create your 3-tier offer structure.
+        </div>`}
+    </div>
+
+</div>
+
+${tiers ? `
+<div class="card">
+    <div class="card-title">Your Offer One-Liner</div>
+    <div class="content-output">${tiers.oneLiner}</div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="copyOneLiner()">Copy</button>
+    </div>
+</div>` : ''}`;
+}
+
+function renderTiers(tiers) {
+    return `
+<div class="tier-grid" style="grid-template-columns:1fr">
+    ${tiers.packages.map((pkg, i) => `
+    <div class="tier-card ${i === 1 ? 'featured' : ''}">
+        ${i === 1 ? '<span class="tier-recommended">Most Popular</span>' : ''}
+        <div class="tier-name">${pkg.name}</div>
+        <div class="tier-price">${fmt(pkg.price)}</div>
+        <div class="tier-period">${pkg.period}</div>
+        <ul class="tier-features">
+            ${pkg.features.map(f => `<li>${f}</li>`).join('')}
+        </ul>
+    </div>`).join('')}
+</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SETTINGS VIEW
+// ══════════════════════════════════════════════════════════════════════════════
+
+function viewSettings() {
+    return `
+<div class="view-header">
+    <div>
+        <h1>⚙️ Settings</h1>
+        <p>Personalize your Revenue OS workspace.</p>
+    </div>
+</div>
+
+<div class="settings-section">
+    <h2>Your Profile</h2>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="s-name" value="${state.settings.userName}" placeholder="Alex Rivera">
+        </div>
+        <div class="form-group">
+            <label>Avatar Initials (2 letters)</label>
+            <input type="text" id="s-initials" value="${state.settings.initials}" maxlength="2" placeholder="AR">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Your Niche / Business Type</label>
+        <input type="text" id="s-niche" value="${state.settings.niche}" placeholder="Business & Revenue Consulting">
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Save Profile</button>
+</div>
+
+<div class="settings-section">
+    <h2>Revenue Targets</h2>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Annual Revenue Target ($)</label>
+            <input type="number" id="s-target" value="${state.settings.targetRevenue || ''}" placeholder="120000">
+        </div>
+        <div class="form-group">
+            <label>Client Slots / Month</label>
+            <input type="number" id="s-slots" value="${state.settings.clientSlots || ''}" placeholder="4">
+        </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Save Targets</button>
+</div>
+
+<div class="settings-section">
+    <h2>Data</h2>
+    <p style="font-size:0.88rem;color:var(--muted);margin-bottom:14px">
+        All your data is stored locally in your browser. Reset clears everything and restores the sample data.
+    </p>
+    <button class="btn btn-danger" onclick="resetData()">Reset All Data</button>
+</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PRICING AGENT RUNNER
+// ══════════════════════════════════════════════════════════════════════════════
+
+function runPricingAgent() {
+    const btn = document.getElementById('btn-run-pricing');
+    if (!btn || btn.disabled) return;
+
+    const revenue = parseInt(document.getElementById('p-revenue')?.value) || parseInt(state.settings.targetRevenue) || 120000;
+    const slots   = parseInt(document.getElementById('p-slots')?.value)   || parseInt(state.settings.clientSlots) || 4;
+    const months  = parseInt(document.getElementById('p-months')?.value)  || parseInt(state.settings.engagementMonths) || 3;
+    const niche   = document.getElementById('p-niche')?.value.trim() || state.settings.niche;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Designing packages…';
+    setDot('pricing', 'running');
+
+    setTimeout(() => {
+        const monthlyTarget = Math.round(revenue / 12);
+        const perClient     = Math.round(monthlyTarget / slots);
+        const projectFee    = Math.round(perClient * months);
+
+        // Round to clean pricing numbers
+        const round = n => Math.ceil(n / 500) * 500;
+
+        const starter = round(projectFee * 0.55);
+        const core    = round(projectFee);
+        const premium = round(projectFee * 1.65);
+
+        const tiers = {
+            packages: [
+                {
+                    name: 'Starter',
+                    price: starter,
+                    period: 'one-time / 4 weeks',
+                    features: [
+                        `${niche} audit & diagnosis`,
+                        '90-minute strategy session',
+                        'Priority action plan (written)',
+                        'Email support for 2 weeks',
+                    ],
+                },
+                {
+                    name: 'Core',
+                    price: core,
+                    period: `${months}-month engagement`,
+                    features: [
+                        'Everything in Starter',
+                        `Weekly 60-min implementation calls`,
+                        'Full strategy roadmap',
+                        'Async Slack/email support',
+                        'Monthly progress reviews',
+                    ],
+                },
+                {
+                    name: 'Premium',
+                    price: premium,
+                    period: `${months}-month engagement`,
+                    features: [
+                        'Everything in Core',
+                        'Done-with-you implementation',
+                        'Unlimited async support',
+                        'Priority scheduling',
+                        'Quarterly business review',
+                        'Direct mobile access',
+                    ],
+                },
+            ],
+            oneLiner: `I help ${niche.toLowerCase()} owners grow revenue predictably — without burning out or lowering their prices. My flagship engagement starts at ${fmt(starter)} and delivers a clear, actionable growth roadmap in 4 weeks.`,
+        };
+
+        state.pricingTiers = tiers;
+        state.settings.targetRevenue   = revenue;
+        state.settings.clientSlots     = slots;
+        state.settings.engagementMonths = months;
+
+        logActivity('Pricing Agent', `Designed 3-tier package: ${fmt(starter)} / ${fmt(core)} / ${fmt(premium)}`);
+        saveState();
+        setDot('pricing', 'active');
+        showToast('✅ 3-tier packages ready!');
+        renderView('pricing');
+        updateNav('pricing');
+    }, 2200);
+}
+
+function calcRate() {
+    const revenue = parseInt(document.getElementById('p-revenue')?.value);
+    const slots   = parseInt(document.getElementById('p-slots')?.value);
+    const months  = parseInt(document.getElementById('p-months')?.value);
+
+    if (!revenue || !slots || !months) {
+        showToast('Fill in all three fields first.');
+        return;
+    }
+
+    const monthly   = Math.round(revenue / 12);
+    const perClient = Math.round(monthly / slots);
+    const project   = Math.round(perClient * months);
+    const daily     = Math.round(revenue / 220);
+    const hourly    = Math.round(daily / 6);
+
+    const el = document.getElementById('calc-result');
+    if (el) {
+        el.style.display = 'block';
+        el.innerHTML = `
+            To hit <strong>${fmt(revenue)}/year</strong> with ${slots} clients/month:<br><br>
+            📦 Minimum project fee &nbsp; <strong>${fmt(project)}</strong> (${months}-month engagement)<br>
+            📅 Monthly retainer &nbsp;&nbsp;&nbsp;&nbsp; <strong>${fmt(perClient)}/month</strong><br>
+            🕐 Effective hourly rate &nbsp; <strong>${fmt(hourly)}/hr</strong><br>
+            📆 Day rate equivalent &nbsp;&nbsp; <strong>${fmt(daily)}/day</strong>
+        `;
+    }
+}
+
+function copyOneLiner() {
+    const text = state.pricingTiers?.oneLiner;
+    if (text) navigator.clipboard.writeText(text).then(() => showToast('One-liner copied!'));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SETTINGS ACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function saveSettings() {
+    const name     = document.getElementById('s-name')?.value.trim();
+    const initials = document.getElementById('s-initials')?.value.trim().toUpperCase();
+    const niche    = document.getElementById('s-niche')?.value.trim();
+    const target   = document.getElementById('s-target')?.value;
+    const slots    = document.getElementById('s-slots')?.value;
+
+    if (name)     state.settings.userName = name;
+    if (initials) state.settings.initials = initials;
+    if (niche)    state.settings.niche    = niche;
+    if (target)   state.settings.targetRevenue = parseInt(target);
+    if (slots)    state.settings.clientSlots   = parseInt(slots);
+
+    // Update sidebar immediately
+    const nameEl   = document.getElementById('sidebar-username');
+    const avatarEl = document.getElementById('sidebar-avatar');
+    if (nameEl)   nameEl.textContent   = state.settings.userName;
+    if (avatarEl) avatarEl.textContent = state.settings.initials;
+
+    saveState();
+    showToast('✅ Settings saved!');
+}
+
+function resetData() {
+    if (!confirm('This will erase all your data and restore the sample data. Continue?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    loadState();
+    showToast('Data reset. Welcome back!');
+    renderView('dashboard');
+    updateNav('dashboard');
+    location.hash = 'dashboard';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════════════════════
 
 function init() {
     loadState();
-    ['leads', 'sales', 'content', 'analytics'].forEach(a => setDot(a, 'active'));
+    ['leads', 'sales', 'content', 'analytics', 'pricing'].forEach(a => setDot(a, 'active'));
 
     const view = getView();
     renderView(view);

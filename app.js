@@ -340,6 +340,38 @@ function logActivity(agent, action) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// CLAUDE API HELPER
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function callClaude(userPrompt) {
+    const apiKey = state.settings.claudeApiKey;
+    if (!apiKey) return null;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+            'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+            model: 'claude-haiku-4-5',
+            max_tokens: 1024,
+            messages: [{ role: 'user', content: userPrompt }],
+        }),
+    });
+
+    if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error?.message || `API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.content[0]?.text || '';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ROUTER
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -956,7 +988,7 @@ ${state.settings.userName}`,
     }, 2400);
 }
 
-function runContentAgent() {
+async function runContentAgent() {
     const btn   = document.getElementById('btn-run-content');
     const type  = document.getElementById('c-type')?.value;
     const topic = document.getElementById('c-topic')?.value.trim();
@@ -966,46 +998,117 @@ function runContentAgent() {
     if (!btn || btn.disabled) return;
 
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Generating…';
+    const hasKey = !!state.settings.claudeApiKey;
+    btn.innerHTML = `<span class="spinner"></span> ${hasKey ? 'Asking Claude…' : 'Generating…'}`;
     setDot('content', 'running');
 
-    setTimeout(() => {
+    let output = null;
+
+    if (hasKey) {
+        const prompts = {
+            'LinkedIn Post':    `You are an expert business consultant and LinkedIn content creator. Write a compelling LinkedIn post about "${topic}" for a ${niche} professional. The post should be 150-250 words, use line breaks for readability, end with an engaging question or call to action, and feel authentic. Write only the post content, nothing else.`,
+            'Cold Email':       `You are an expert B2B sales copywriter. Write a cold email for a ${niche} consultant reaching out to prospects about "${topic}". Include a subject line, keep the body to 4-6 sentences, use {{First Name}}, {{Company}}, and {{Your Name}} as placeholders. Focus on value, not features. Write only the email, nothing else.`,
+            'Follow-up Email':  `You are an expert B2B sales copywriter. Write a follow-up email for a ${niche} consultant following up on "${topic}". Include a subject line, keep it short (3-4 sentences), use {{First Name}}, {{Company}}, and {{Your Name}} as placeholders. Be warm, not pushy. Write only the email, nothing else.`,
+            'Proposal Intro':   `You are an expert consultant. Write a professional proposal introduction for a ${niche} consulting engagement about "${topic}". Include an executive summary, what the client receives, and next steps. Use {{Company}} and {{First Name}} as placeholders. Write only the proposal content, nothing else.`,
+        };
+
+        try {
+            output = await callClaude(prompts[type] || prompts['LinkedIn Post']);
+        } catch (err) {
+            showToast(`Claude API error: ${err.message}`);
+            output = null;
+        }
+    }
+
+    // Fall back to template if no key or API error
+    if (!output) {
         const templates = CONTENT_TEMPLATES[type] || CONTENT_TEMPLATES['LinkedIn Post'];
-        const template  = templates[Math.floor(Math.random() * templates.length)];
-        const output    = template(topic, niche);
+        output = templates[Math.floor(Math.random() * templates.length)](topic, niche);
+    }
 
-        const outEl = document.getElementById('content-output');
-        if (outEl) outEl.textContent = output;
+    const outEl = document.getElementById('content-output');
+    if (outEl) outEl.textContent = output;
 
-        // Stash for save
-        window._pendingContent = { type, topic, body: output, niche };
+    window._pendingContent = { type, topic, body: output, niche };
 
-        btn.disabled = false;
-        btn.innerHTML = '▶ Generate';
-        setDot('content', 'active');
-        logActivity('Content Creator', `Generated ${type}: "${topic}"`);
-        saveState();
-        showToast(`✅ ${type} generated!`);
-    }, 2000);
+    btn.disabled = false;
+    btn.innerHTML = '▶ Generate';
+    setDot('content', 'active');
+    logActivity('Content Creator', `Generated ${type}: "${topic}"${hasKey ? ' (Claude AI)' : ''}`);
+    saveState();
+    showToast(`✅ ${type} generated!`);
 }
 
-function runAnalyticsAgent() {
+async function runAnalyticsAgent() {
     const btn = document.getElementById('btn-run-analytics');
     if (!btn || btn.disabled) return;
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Analyzing…';
+    const hasKey = !!state.settings.claudeApiKey;
+    btn.innerHTML = `<span class="spinner"></span> ${hasKey ? 'Asking Claude…' : 'Analyzing…'}`;
     setDot('analytics', 'running');
 
-    setTimeout(() => {
-        const insights = generateInsights();
-        state.insights = insights;
-        logActivity('Analytics', 'Generated revenue insights and growth recommendations');
-        saveState();
-        setDot('analytics', 'active');
-        showToast('✅ Analytics insights ready!');
-        renderView('analytics');
-        updateNav('analytics');
-    }, 2800);
+    let insights = null;
+
+    if (hasKey) {
+        const leads   = state.leads;
+        const deals   = state.deals;
+        const rev     = state.revenue;
+        const lastTwo = rev.monthly.slice(-2);
+        const wonRev  = deals.filter(d => d.stage === 'Closed Won').reduce((s, d) => s + d.value, 0);
+        const openPipe= Math.round(deals.filter(d => !['Closed Won','Closed Lost'].includes(d.stage))
+                            .reduce((s, d) => s + d.value * d.probability / 100, 0));
+        const neverContacted = leads.filter(l => !l.lastContact && l.status !== 'Unqualified').length;
+
+        const statusCounts = [...new Set(leads.map(l => l.status))]
+            .map(s => `${s}: ${leads.filter(l => l.status === s).length}`).join(', ');
+
+        const dataSnapshot = `
+Business type: ${state.settings.niche}
+Revenue trend: ${rev.months.slice(-3).join(', ')} → ${rev.monthly.slice(-3).map(v => '$' + v.toLocaleString()).join(', ')}
+Revenue by source: ${JSON.stringify(rev.bySource)}
+Lead breakdown: ${statusCounts}
+Leads never contacted: ${neverContacted}
+Closed won revenue: $${wonRev.toLocaleString()}
+Weighted open pipeline: $${openPipe.toLocaleString()}
+Open deals: ${deals.filter(d => !['Closed Won','Closed Lost'].includes(d.stage))
+    .map(d => `${d.name} (${d.stage}, ${d.probability}%, $${d.value.toLocaleString()})`).join('; ')}
+`;
+
+        const prompt = `You are an expert business analytics consultant. Analyze this consulting business data and write exactly 4 specific, actionable insights.
+
+${dataSnapshot}
+
+Rules:
+- Start each insight with a relevant emoji
+- Be specific — use the exact numbers from the data
+- Each insight must end with one concrete action to take right now
+- Keep each insight to 1-2 sentences max
+- Separate insights with a blank line
+- Write nothing else — just the 4 insight paragraphs`;
+
+        try {
+            const text = await callClaude(prompt);
+            if (text) {
+                const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 20).slice(0, 4);
+                insights = paragraphs.map((p, i) => ({
+                    type: i === 0 ? (lastTwo[1] >= lastTwo[0] ? 'positive' : 'warning') : (i === 3 ? 'warning' : ''),
+                    text: p.trim(),
+                }));
+            }
+        } catch (err) {
+            showToast(`Claude API error: ${err.message}`);
+        }
+    }
+
+    if (!insights) insights = generateInsights();
+
+    state.insights = insights;
+    logActivity('Analytics', hasKey ? 'Claude AI generated revenue insights' : 'Generated revenue insights');
+    saveState();
+    setDot('analytics', 'active');
+    showToast('✅ Analytics insights ready!');
+    renderView('analytics');
+    updateNav('analytics');
 }
 
 function generateInsights() {
@@ -1319,6 +1422,27 @@ function viewSettings() {
 </div>
 
 <div class="settings-section">
+    <h2>Claude AI Integration</h2>
+    <p style="font-size:0.88rem;color:var(--muted);margin-bottom:10px">
+        Add your Anthropic API key to power the Content Creator and Analytics agents with real Claude AI.
+        The key is stored in your browser only and sent directly to Anthropic — never to any other server.
+    </p>
+    <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:0.82rem;color:#92400e">
+        ⚠️ <strong>Security note:</strong> Browser apps expose API keys to anyone who inspects the page.
+        Use a key with low spending limits, or only use this on a private trusted device.
+        Get your key at <strong>console.anthropic.com</strong>.
+    </div>
+    <div class="form-group">
+        <label>Anthropic API Key</label>
+        <input type="password" id="s-apikey" value="${state.settings.claudeApiKey || ''}" placeholder="sk-ant-api03-…">
+    </div>
+    <p style="font-size:0.82rem;margin-bottom:12px;${state.settings.claudeApiKey ? 'color:var(--green)' : 'color:var(--muted)'}">
+        ${state.settings.claudeApiKey ? '✅ API key is set — Content and Analytics agents will use Claude AI' : 'No key set — agents use built-in templates'}
+    </p>
+    <button class="btn btn-primary" onclick="saveApiKey()">Save API Key</button>
+</div>
+
+<div class="settings-section">
     <h2>Data</h2>
     <p style="font-size:0.88rem;color:var(--muted);margin-bottom:14px">
         All your data is stored locally in your browser. Reset clears everything and restores the sample data.
@@ -1471,6 +1595,19 @@ function saveSettings() {
 
     saveState();
     showToast('✅ Settings saved!');
+}
+
+function saveApiKey() {
+    const key = document.getElementById('s-apikey')?.value.trim();
+    if (key && !key.startsWith('sk-ant-')) {
+        showToast('That doesn\'t look like an Anthropic key (should start with sk-ant-).');
+        return;
+    }
+    state.settings.claudeApiKey = key || null;
+    saveState();
+    showToast(key ? '✅ API key saved! Agents will now use Claude AI.' : 'API key removed.');
+    renderView('settings');
+    updateNav('settings');
 }
 
 function resetData() {

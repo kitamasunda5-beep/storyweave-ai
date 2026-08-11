@@ -4,52 +4,52 @@
 // CONFIG
 // ══════════════════════════════════════════════════════════════════════════════
 
-const STORAGE_KEY = 'revenue_os_v1';
+const STORAGE_KEY = 'aimtria_os_v1';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // INITIAL DATA  — shown on first load, then overridden by localStorage
 // ══════════════════════════════════════════════════════════════════════════════
 
 const INITIAL_DATA = {
-    settings: { userName: 'Alex Rivera', niche: 'Business & Revenue Consulting', initials: 'AR' },
+    settings: { userName: 'Your Name', niche: 'Intelligent Operations & Continuous Improvement Platform', initials: 'AI' },
 
     leads: [
-        { id: 'L001', name: 'Marcus Chen',    email: 'marcus@techcorp.io',     company: 'TechCorp',         source: 'LinkedIn',   status: 'Qualified',   score: 8,  value: 5500,  addedAt: '2026-07-10', lastContact: '2026-07-25', notes: 'Interested in 3-month strategy engagement. Decision maker.' },
-        { id: 'L002', name: 'Sarah Williams', email: 'sarah@growthlab.com',    company: 'GrowthLab',        source: 'Referral',   status: 'Proposal',    score: 9,  value: 9000,  addedAt: '2026-07-14', lastContact: '2026-08-02', notes: 'Referred by Marcus. Needs full revenue audit + strategy.' },
-        { id: 'L003', name: 'James Park',     email: 'jpark@nextlevel.io',     company: 'NextLevel',        source: 'Cold Email', status: 'Contacted',   score: 6,  value: 3200,  addedAt: '2026-07-19', lastContact: '2026-07-22', notes: 'Responded to cold email. Wants to explore options.' },
-        { id: 'L004', name: 'Emma Rodriguez', email: 'emma@scalefast.co',      company: 'ScaleFast',        source: 'LinkedIn',   status: 'Negotiating', score: 10, value: 14000, addedAt: '2026-07-05', lastContact: '2026-08-07', notes: 'Serious buyer. Negotiating scope of engagement.' },
-        { id: 'L005', name: 'David Okafor',   email: 'd.okafor@pioneer.com',   company: 'Pioneer Solutions',source: 'Website',    status: 'New',         score: 5,  value: 2800,  addedAt: '2026-08-01', lastContact: null,         notes: 'Submitted contact form. No follow-up yet.' },
-        { id: 'L006', name: 'Lisa Tanaka',    email: 'lisa@momentum.co',       company: 'Momentum Co',      source: 'Referral',   status: 'Closed Won',  score: 9,  value: 7500,  addedAt: '2026-06-20', lastContact: '2026-07-30', notes: 'Signed 3-month consulting engagement.' },
-        { id: 'L007', name: 'Ryan Mitchell',  email: 'ryan@boldventures.io',   company: 'Bold Ventures',    source: 'LinkedIn',   status: 'Closed Won',  score: 8,  value: 5000,  addedAt: '2026-06-10', lastContact: '2026-07-15', notes: 'Signed strategy package. Happy client.' },
-        { id: 'L008', name: 'Priya Sharma',   email: 'priya@elevategrowth.com',company: 'Elevate Growth',   source: 'Cold Email', status: 'Unqualified', score: 3,  value: 0,     addedAt: '2026-07-25', lastContact: '2026-07-26', notes: 'Not a fit. Budget too low.' },
+        { id: 'L001', name: 'Sarah Mitchell',  email: 'smitchell@apexmfg.com',    company: 'Apex Manufacturing',    source: 'LinkedIn',   status: 'Qualified',   score: 8,  value: 45000, addedAt: '2026-07-12', lastContact: '2026-07-28', notes: 'Director of CI at 3-plant automotive parts manufacturer. Struggling with inconsistent shift performance and zero cross-site visibility. Decision maker.' },
+        { id: 'L002', name: 'James Okafor',    email: 'jokafor@fastfreight.com',   company: 'FastFreight Logistics', source: 'Referral',   status: 'Proposal',    score: 9,  value: 72000, addedAt: '2026-07-18', lastContact: '2026-08-04', notes: 'VP Operations at 5-warehouse 3PL. Managing all CI in spreadsheets. Very interested in the Detect → Sustain closed loop. Strong fit.' },
+        { id: 'L003', name: 'Elena Chen',      email: 'echen@nutripak.com',        company: 'NutriPak Foods',        source: 'Cold Email', status: 'Contacted',   score: 6,  value: 38000, addedAt: '2026-07-22', lastContact: '2026-07-25', notes: 'COO at food processing company. Responded to cold email. Interested in WMS integration and HACCP compliance tracking.' },
+        { id: 'L004', name: 'Robert Walsh',    email: 'rwalsh@steelcore.com',      company: 'SteelCore Industries',  source: 'LinkedIn',   status: 'New',         score: 7,  value: 55000, addedAt: '2026-08-02', lastContact: null,         notes: 'Plant Manager at heavy manufacturer. Connected on LinkedIn after post on OEE visibility. No outreach yet.' },
+        { id: 'L005', name: 'Maria Santos',    email: 'msantos@meddistribute.com', company: 'MedDistribute',         source: 'Website',    status: 'New',         score: 6,  value: 62000, addedAt: '2026-08-05', lastContact: null,         notes: 'Supply Chain Director at pharma distributor. Submitted demo request form. Wants to see AIMTRIA handle DMAIC workflows.' },
+        { id: 'L006', name: 'Karen Brooks',    email: 'kbrooks@freshflow.com',     company: 'FreshFlow Produce',     source: 'Referral',   status: 'Contacted',   score: 7,  value: 48000, addedAt: '2026-07-30', lastContact: '2026-08-06', notes: 'VP Manufacturing at perishables distributor. Referred by James Okafor. Exploring CI platform for cold chain operations.' },
+        { id: 'L007', name: 'Thomas Nguyen',   email: 'tnguyen@packfirst.com',     company: 'PackFirst Packaging',   source: 'Cold Email', status: 'New',         score: 5,  value: 33000, addedAt: '2026-08-07', lastContact: null,         notes: 'CI Director at packaging manufacturer. Received cold email. No reply yet.' },
+        { id: 'L008', name: 'David Park',      email: 'dpark@globalpartsauto.com', company: 'GlobalParts Auto',      source: 'LinkedIn',   status: 'Qualified',   score: 8,  value: 41000, addedAt: '2026-07-15', lastContact: '2026-08-01', notes: 'Operations Excellence Manager at automotive OEM supplier. Wants to move off paper A3 forms to a digital closed-loop system.' },
     ],
 
     deals: [
-        { id: 'D001', leadId: 'L002', name: 'GrowthLab Revenue Audit',         value: 9000,  stage: 'Proposal',    probability: 75,  createdAt: '2026-07-14' },
-        { id: 'D002', leadId: 'L004', name: 'ScaleFast Strategy Engagement',   value: 14000, stage: 'Negotiating', probability: 88,  createdAt: '2026-07-05' },
-        { id: 'D003', leadId: 'L001', name: 'TechCorp Consulting Retainer',    value: 5500,  stage: 'Contacted',   probability: 35,  createdAt: '2026-07-10' },
-        { id: 'D004', leadId: 'L006', name: 'Momentum Co 3-Month Program',     value: 7500,  stage: 'Closed Won',  probability: 100, createdAt: '2026-06-20' },
-        { id: 'D005', leadId: 'L007', name: 'Bold Ventures Strategy Package',  value: 5000,  stage: 'Closed Won',  probability: 100, createdAt: '2026-06-10' },
-        { id: 'D006', leadId: 'L005', name: 'Pioneer Solutions Discovery',     value: 2800,  stage: 'New',         probability: 20,  createdAt: '2026-08-01' },
+        { id: 'D001', leadId: 'L002', name: 'FastFreight Logistics — Platform Pilot',   value: 18000, stage: 'Proposal',    probability: 70, createdAt: '2026-07-18' },
+        { id: 'D002', leadId: 'L001', name: 'Apex Manufacturing — CI Platform License', value: 45000, stage: 'Negotiating', probability: 55, createdAt: '2026-07-12' },
+        { id: 'D003', leadId: 'L008', name: 'GlobalParts Auto — Discovery Pilot',       value: 12000, stage: 'Proposal',    probability: 50, createdAt: '2026-07-15' },
+        { id: 'D004', leadId: 'L006', name: 'FreshFlow Produce — Demo & Scoping',       value: 48000, stage: 'Contacted',   probability: 30, createdAt: '2026-07-30' },
+        { id: 'D005', leadId: 'L003', name: 'NutriPak Foods — Initial Discovery',       value: 38000, stage: 'Contacted',   probability: 25, createdAt: '2026-07-22' },
+        { id: 'D006', leadId: 'L005', name: 'MedDistribute — Inbound Demo Request',     value: 62000, stage: 'New',         probability: 15, createdAt: '2026-08-05' },
     ],
 
     revenue: {
         months:  ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-        monthly: [3800, 5200, 4900, 8500, 12500, 11800],
-        bySource: { LinkedIn: 14200, Referral: 12500, 'Cold Email': 5300, Website: 2800 },
+        monthly: [0, 0, 0, 0, 8000, 15000],
+        bySource: { LinkedIn: 12000, Referral: 8000, 'Cold Email': 3000, Website: 0 },
     },
 
     content: [
-        { id: 'C001', type: 'LinkedIn Post',   topic: 'Why most consultants undercharge',  body: 'Most consultants leave 40% of their revenue on the table.\n\nNot because their work isn\'t valuable — because they price it wrong.\n\nHere\'s the 3-step framework I use to price consulting packages correctly:\n\n1. Anchor to outcome value, not hours worked\n2. Create 3 tiers (not just one package)\n3. Let the client choose their investment level\n\nIn the last quarter, this helped my clients increase their average deal size by 67%.\n\nWhat pricing mistake are you currently making? Drop it below 👇',  status: 'Published', createdAt: '2026-07-28' },
-        { id: 'C002', type: 'Cold Email',       topic: 'Revenue audit outreach',            body: 'Subject: Quick question about revenue growth at {{Company}}\n\nHi {{First Name}},\n\nI noticed {{Company}} has been scaling quickly — impressive.\n\nI work with B2B service businesses to find hidden revenue leaks and plug them within 90 days. My last client added $47K in recurring revenue without acquiring a single new customer.\n\nWould it make sense to have a 20-minute call this week?\n\nBest,\n{{Your Name}}', status: 'Published', createdAt: '2026-08-01' },
-        { id: 'C003', type: 'Follow-up Email',  topic: 'Re-engage unresponsive lead',       body: 'Subject: Thought of you, {{First Name}}\n\nHi {{First Name}},\n\nI came across something relevant to our conversation and wanted to share it — no agenda.\n\nHere\'s a quick case study on how I helped a similar business increase close rate by 40% in 60 days: [link]\n\nHope it\'s useful. Happy to chat whenever the timing is right.\n\n{{Your Name}}', status: 'Draft', createdAt: '2026-08-03' },
+        { id: 'C001', type: 'LinkedIn Post',  topic: 'The hidden cost of undetected operational gaps', body: 'Most operations leaders don\'t have a visibility problem.\n\nThey have a closed-loop problem.\n\nThey see the gap. They start an improvement project. They get distracted.\n\n3 months later, the problem is back — and no one knows why.\n\nThe real cost isn\'t the initial performance drop. It\'s the regression.\n\nAt AIMTRIA, we call it the "improvement decay curve" — and we\'ve seen it cost manufacturers 8–15% of operational efficiency every year.\n\nThe fix isn\'t more meetings or better spreadsheets.\n\nIt\'s a closed-loop system:\n\nDetect → Analyze → Prioritize → Act → Verify → Sustain.\n\nWhat does your current CI process actually look like when you\'re honest about it? 👇', status: 'Published', createdAt: '2026-07-28' },
+        { id: 'C002', type: 'Cold Email',     topic: 'Ops Director outreach — warehouse productivity',  body: 'Subject: Productivity gap at {{Company}}\n\nHi {{First Name}},\n\nI noticed {{Company}} has been scaling its operations — congrats on the growth.\n\nI\'m reaching out because operations leaders at similar companies tell me the same thing: as you scale, improvement projects scatter across spreadsheets, emails, and meetings — and results don\'t stick.\n\nAIMTRIA fixes that. We connect to your existing systems (ERP, WMS, HR), detect performance gaps automatically, and manage the full improvement cycle — from root cause to verified result — in one place.\n\nWould a 20-minute call make sense?\n\n{{Your Name}}\nAIMTRIA Systems', status: 'Published', createdAt: '2026-08-01' },
+        { id: 'C003', type: 'Follow-up Email', topic: 'CI platform demo follow-up',                     body: 'Subject: Still thinking about the CI platform?\n\nHi {{First Name}},\n\nJust circling back — no pressure at all.\n\nI know evaluating a new operational platform isn\'t a small decision, especially when the team is already stretched.\n\nIf it helps: we offer a scoped 8-week pilot on one site with your real data — no long-term commitment required. You see AIMTRIA working in your environment before anything else.\n\nLet me know if that\'s worth a look.\n\n{{Your Name}}\nAIMTRIA Systems', status: 'Draft', createdAt: '2026-08-05' },
     ],
 
     agentLog: [
-        { agent: 'Lead Generation',  action: 'Found 3 new leads from LinkedIn prospecting',     timestamp: '2026-08-09T14:32:00Z' },
-        { agent: 'Content Creator',  action: 'Generated LinkedIn post: "Why most consultants undercharge"', timestamp: '2026-08-08T10:15:00Z' },
-        { agent: 'Sales & Follow-up',action: 'Queued 2 follow-up emails for stale leads',        timestamp: '2026-08-07T09:00:00Z' },
-        { agent: 'Analytics',        action: 'Generated weekly revenue insight report',           timestamp: '2026-08-06T16:45:00Z' },
+        { agent: 'Lead Generation',   action: 'Found 3 new Operations Director prospects from LinkedIn',           timestamp: '2026-08-09T14:32:00Z' },
+        { agent: 'Content Creator',   action: 'Generated LinkedIn post: "The hidden cost of undetected operational gaps"', timestamp: '2026-08-08T10:15:00Z' },
+        { agent: 'Sales & Follow-up', action: 'Queued 2 follow-up emails for stale demo requests',                timestamp: '2026-08-07T09:00:00Z' },
+        { agent: 'Analytics',         action: 'Generated pipeline insights and lead source breakdown',             timestamp: '2026-08-06T16:45:00Z' },
     ],
 
     followUpQueue: [],
@@ -76,21 +76,21 @@ function saveState() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const LEAD_POOL = [
-    { name: 'Alex Kim',       email: 'alex@innovateco.com',  company: 'InnovateCo',   source: 'LinkedIn',   value: 4500 },
-    { name: 'Priya Anand',    email: 'priya@scalehub.io',    company: 'ScaleHub',     source: 'LinkedIn',   value: 6000 },
-    { name: 'Tom Bradley',    email: 'tom@bradleyconsult.com',company: 'Bradley & Co', source: 'Referral',   value: 8000 },
-    { name: 'Maya Johnson',   email: 'maya@nextwave.co',     company: 'NextWave',     source: 'Cold Email', value: 3500 },
-    { name: 'Carlos Rivera',  email: 'carlos@revenuepro.com',company: 'RevenuePro',   source: 'LinkedIn',   value: 5500 },
-    { name: 'Sofia Lindqvist',email: 'sofia@growthlab.se',   company: 'GrowthLab SE', source: 'Website',    value: 4000 },
-    { name: 'Nathan Brooks',  email: 'nbrooks@meridian.io',  company: 'Meridian Inc', source: 'Referral',   value: 9500 },
-    { name: 'Aisha Okafor',   email: 'aisha@boldventures.ng',company: 'Bold Ventures',source: 'LinkedIn',   value: 7000 },
-    { name: 'Kevin Lau',      email: 'klau@laustrategy.com', company: 'Lau Strategy', source: 'Cold Email', value: 3200 },
-    { name: 'Rachel Cohen',   email: 'rachel@momentum.co',   company: 'MomentumCo',  source: 'Website',    value: 5000 },
-    { name: 'Diego Morales',  email: 'diego@elevate.mx',     company: 'Elevate MX',  source: 'LinkedIn',   value: 6500 },
-    { name: 'Elena Petrov',   email: 'elena@novaconsult.eu', company: 'Nova Consult', source: 'Referral',   value: 11000 },
-    { name: 'Wei Zhang',      email: 'wei@growthops.cn',     company: 'GrowthOps',   source: 'LinkedIn',   value: 5800 },
-    { name: 'Amara Diallo',   email: 'amara@scalr.io',       company: 'Scalr',        source: 'Cold Email', value: 4200 },
-    { name: 'Jordan Hayes',   email: 'jordan@venturepoint.co',company:'VenturePoint', source: 'Referral',   value: 7800 },
+    { name: 'Frank Osei',       email: 'fosei@stellarpack.com',     company: 'StellarPack',         source: 'LinkedIn',   value: 48000 },
+    { name: 'Diane Kozlowski',  email: 'dkoz@midwestfab.com',       company: 'Midwest Fabrication', source: 'Referral',   value: 65000 },
+    { name: 'Marcus Reid',      email: 'm.reid@logixchain.io',       company: 'LogixChain',          source: 'LinkedIn',   value: 38000 },
+    { name: 'Nadia Petersen',   email: 'npetersen@arcticsupply.no',  company: 'Arctic Supply Co',    source: 'Cold Email', value: 72000 },
+    { name: 'Carlos Medina',    email: 'cmedina@precisionauto.mx',   company: 'Precision Auto MX',   source: 'LinkedIn',   value: 55000 },
+    { name: 'Helen Burke',      email: 'hburke@freshlogic.ie',       company: 'FreshLogic',          source: 'Referral',   value: 42000 },
+    { name: 'Sanjay Patel',     email: 'spatel@induspharma.in',      company: 'Indus Pharma',        source: 'Website',    value: 85000 },
+    { name: 'Rachel Dumas',     email: 'rdumas@euroflex.fr',         company: 'EuroFlex Ops',        source: 'LinkedIn',   value: 60000 },
+    { name: 'Paul Thornton',    email: 'pthornton@thorntonmill.com', company: 'Thornton Mill',       source: 'Cold Email', value: 34000 },
+    { name: 'Amara Diallo',     email: 'adiallo@westafrica3pl.com',  company: 'WestAfrica 3PL',      source: 'Referral',   value: 47000 },
+    { name: 'Jin-Ho Bae',       email: 'jbae@korealogis.kr',         company: 'KoreaLogis',          source: 'LinkedIn',   value: 92000 },
+    { name: 'Ingrid Larsson',   email: 'ilarsson@nordicops.se',      company: 'NordicOps',           source: 'Cold Email', value: 58000 },
+    { name: 'Derek Munroe',     email: 'dmunroe@crestpack.ca',       company: 'CrestPack Canada',    source: 'LinkedIn',   value: 44000 },
+    { name: 'Fatima Al-Rashid', email: 'falrashid@gulfchain.ae',     company: 'GulfChain',           source: 'Website',    value: 110000 },
+    { name: 'Boris Novak',      email: 'bnovak@centralwms.cz',       company: 'CentralWMS',          source: 'Referral',   value: 51000 },
 ];
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -99,8 +99,202 @@ const LEAD_POOL = [
 
 const CONTENT_TEMPLATES = {
     'LinkedIn Post': [
-        (topic, niche) =>
-`Most ${niche} professionals make this mistake with ${topic}:
+        (topic) =>
+`Here's the CI problem no one talks about:
+
+Operations teams detect the problem.
+They assign it. They meet about it.
+
+Then life happens.
+
+The improvement stalls. The spreadsheet gets archived. The problem comes back.
+
+This is the "improvement decay curve" — and it silently costs manufacturers 8–15% of operational efficiency every year.
+
+${topic} is a perfect example of it.
+
+The root cause is almost never the original process gap.
+
+It's the absence of a closed-loop system that takes you from detection all the way to sustained results.
+
+Detect → Analyze → Prioritize → Act → Verify → Sustain.
+
+Most organizations only execute the first two steps consistently.
+
+If your CI projects live in spreadsheets, inboxes, and meeting notes — this is for you.
+
+What does your current improvement follow-through actually look like? Be honest 👇`,
+
+        (topic) =>
+`A warehouse I visited recently had 140 open Kaizen initiatives.
+
+14 had been completed in the past 12 months.
+
+The problem wasn't effort. It wasn't buy-in. It wasn't even resources.
+
+The problem was visibility.
+
+Nobody could answer: "Is this improvement working? Did we verify the result? Is it holding?"
+
+${topic} is a signal — not just a performance metric.
+
+When you can't verify whether your last improvement held, you're not doing continuous improvement.
+
+You're doing continuous reacting.
+
+The operations leaders who consistently outperform their competitors build systems that verify and sustain results automatically.
+
+That's the gap AIMTRIA was built to close.
+
+What percentage of your improvement projects actually get verified and sustained? 👇`,
+
+        (topic) =>
+`The most dangerous number in operations isn't on your P&L.
+
+It's the performance gap you haven't detected yet.
+
+${topic} doesn't announce itself. It shows up slowly — in shift handover notes, in overtime creep, in quality complaints.
+
+By the time it's visible to leadership, it's been bleeding for weeks.
+
+The organizations that consistently outperform their peers have one thing in common: they find these gaps before they escalate.
+
+Not because they're smarter. Because they've built a system that monitors, alerts, and acts — continuously.
+
+Detect early. Analyze fast. Act with ownership. Verify the result. Sustain the gain.
+
+That's the AIMTRIA model — and it changes what operations leadership looks like.
+
+What gap in your operation would you most want to detect earlier? 👇`,
+    ],
+
+    'Cold Email': [
+        (topic) =>
+`Subject: ${topic} — quick question for {{Company}}
+
+Hi {{First Name}},
+
+I noticed {{Company}} has been scaling its operations — congrats on the momentum.
+
+I'm reaching out because operations leaders at similar companies describe the same challenge: as you grow, improvement projects scatter across spreadsheets, emails, and meetings — and results don't stick.
+
+AIMTRIA fixes that. We connect to your existing systems (ERP, WMS, HR), automatically detect performance gaps, and manage the full improvement cycle — from root cause to verified result — in one place.
+
+Would a 20-minute call make sense to see if we could help {{Company}}?
+
+{{Your Name}}
+AIMTRIA Systems`,
+
+        (topic) =>
+`Subject: CI visibility question for {{Company}}
+
+Hi {{First Name}},
+
+Quick question: if productivity dropped in one of your facilities today, how long would it take your team to detect it, identify the root cause, and assign a corrective action?
+
+For most operations teams, the honest answer is "days — maybe weeks."
+
+AIMTRIA cuts that to hours. We connect to your existing systems, continuously monitor performance, and surface gaps with likely root causes and recommended countermeasures (Lean, DMAIC, A3) — before they escalate.
+
+Worth a 20-minute look?
+
+{{Your Name}}
+AIMTRIA Systems`,
+    ],
+
+    'Follow-up Email': [
+        (topic) =>
+`Subject: Re: ${topic}
+
+Hi {{First Name}},
+
+Just following up — I know evaluating a new platform is not a small decision, especially when the team is already stretched.
+
+If it helps: we offer an 8-week scoped pilot on one site with your real operational data — no long-term commitment required. You see AIMTRIA working in your environment before anything else.
+
+Let me know if that's worth exploring.
+
+{{Your Name}}
+AIMTRIA Systems`,
+
+        (topic) =>
+`Subject: Thought of you, {{First Name}}
+
+Hi {{First Name}},
+
+Came across something relevant to ${topic} at {{Company}} and wanted to share — no agenda.
+
+[Insert: relevant case study or industry benchmark on this topic]
+
+Hope it's useful. Happy to reconnect whenever the timing is right.
+
+{{Your Name}}
+AIMTRIA Systems`,
+
+        (topic) =>
+`Subject: Last note from me, {{First Name}}
+
+Hi {{First Name}},
+
+I don't want to overstay my welcome, so this will be my last message for now.
+
+If operational visibility or CI management becomes a priority at {{Company}}, I'd love to reconnect — the door's always open.
+
+Wishing you and the team all the best.
+
+{{Your Name}}
+AIMTRIA Systems`,
+    ],
+
+    'Proposal Intro': [
+        (topic) =>
+`PROPOSAL: AIMTRIA Platform Engagement
+Prepared for {{Company}}  |  ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+
+────────────────────────────────────
+EXECUTIVE SUMMARY
+────────────────────────────────────
+
+This proposal outlines a scoped 8-week pilot to deploy AIMTRIA at {{Company}} and demonstrate measurable impact on ${topic}.
+
+Based on our discovery conversation, the core operational challenges are:
+• [Challenge 1 — e.g. no cross-site visibility into productivity gaps]
+• [Challenge 2 — e.g. improvement projects managed in spreadsheets with no verification]
+• [Challenge 3 — e.g. performance regression after initial fixes]
+
+AIMTRIA's closed-loop cycle — Detect → Analyze → Prioritize → Act → Verify → Sustain — is designed to solve all three.
+
+────────────────────────────────────
+WHAT YOU WILL GET
+────────────────────────────────────
+
+✓ AIMTRIA platform access (1 site, up to 3 system integrations)
+✓ Connection to your existing data sources (ERP / WMS / spreadsheets)
+✓ Automated performance monitoring and gap detection
+✓ Root cause analysis and countermeasure recommendation engine
+✓ Action plan management with ownership, milestones, and due dates
+✓ Result verification against original baseline
+✓ Weekly review sessions with the AIMTRIA team
+✓ Full pilot report and ROI analysis at week 8
+
+────────────────────────────────────
+INVESTMENT
+────────────────────────────────────
+
+Pilot engagement: $[X] (8 weeks, 1 site)
+Annual platform license (post-pilot): $[Y]/year per site
+
+────────────────────────────────────
+NEXT STEPS
+────────────────────────────────────
+
+1. Confirm pilot site and integration scope
+2. Sign pilot agreement and submit first invoice
+3. Technical kickoff call — begin data integration this week
+
+Ready to start? Reply "go" and we'll kick things off immediately.`,
+    ],
+};
 
 They focus on tactics when the real problem is strategy.
 
@@ -938,38 +1132,42 @@ function runSalesAgent() {
 
         const messages = {
             New: (l) =>
-`Subject: Quick question about ${l.company}
+`Subject: Operational visibility at ${l.company}
 
 Hi ${l.name.split(' ')[0]},
 
-I noticed ${l.company} was recently referred to me — I'd love to learn more about what you're working on.
+I noticed ${l.company} has been growing its operations — I'd love to learn more about what you're working on.
 
-I work with consulting and service businesses to grow revenue predictably. Would it make sense to jump on a 20-minute call this week?
+AIMTRIA helps operations and CI teams detect performance gaps automatically and manage the full improvement cycle — from root cause to verified result — in one platform. No more scattered spreadsheets.
 
-Best,
-${state.settings.userName}`,
+Would a 20-minute call make sense this week?
+
+${state.settings.userName}
+AIMTRIA Systems`,
             Contacted: (l) =>
-`Subject: Circling back, ${l.name.split(' ')[0]}
+`Subject: Following up — AIMTRIA pilot for ${l.company}
 
 Hi ${l.name.split(' ')[0]},
 
-Just following up on my last message — I know things get hectic.
+Just circling back — I know things get hectic in operations.
 
-If the timing isn't right, no worries at all. But if you're open to it, I have one slot available this month.
+One thing that often helps: we offer an 8-week scoped pilot on a single site with your real data, so you can see AIMTRIA working in ${l.company}'s environment before any long-term commitment.
 
-Let me know either way.
+Worth a look?
 
-${state.settings.userName}`,
+${state.settings.userName}
+AIMTRIA Systems`,
             Proposal: (l) =>
-`Subject: Any questions on the proposal?
+`Subject: Any questions on the AIMTRIA proposal?
 
 Hi ${l.name.split(' ')[0]},
 
-I wanted to check in on the proposal I sent over. Happy to walk through it on a call or answer any questions by email.
+Checking in on the proposal I sent over for ${l.company}. Happy to walk through the pilot structure or answer any integration questions on a call.
 
 What are your thoughts so far?
 
-${state.settings.userName}`,
+${state.settings.userName}
+AIMTRIA Systems`,
         };
 
         state.followUpQueue = needsFollowUp.map(l => ({
@@ -1006,10 +1204,10 @@ async function runContentAgent() {
 
     if (hasKey) {
         const prompts = {
-            'LinkedIn Post':    `You are an expert business consultant and LinkedIn content creator. Write a compelling LinkedIn post about "${topic}" for a ${niche} professional. The post should be 150-250 words, use line breaks for readability, end with an engaging question or call to action, and feel authentic. Write only the post content, nothing else.`,
-            'Cold Email':       `You are an expert B2B sales copywriter. Write a cold email for a ${niche} consultant reaching out to prospects about "${topic}". Include a subject line, keep the body to 4-6 sentences, use {{First Name}}, {{Company}}, and {{Your Name}} as placeholders. Focus on value, not features. Write only the email, nothing else.`,
-            'Follow-up Email':  `You are an expert B2B sales copywriter. Write a follow-up email for a ${niche} consultant following up on "${topic}". Include a subject line, keep it short (3-4 sentences), use {{First Name}}, {{Company}}, and {{Your Name}} as placeholders. Be warm, not pushy. Write only the email, nothing else.`,
-            'Proposal Intro':   `You are an expert consultant. Write a professional proposal introduction for a ${niche} consulting engagement about "${topic}". Include an executive summary, what the client receives, and next steps. Use {{Company}} and {{First Name}} as placeholders. Write only the proposal content, nothing else.`,
+            'LinkedIn Post':   `You are a B2B thought-leadership content creator for AIMTRIA Systems, an intelligent operations and continuous-improvement platform. AIMTRIA helps manufacturing, logistics, and distribution companies detect performance gaps automatically, analyze root causes, recommend Lean/Six Sigma/DMAIC countermeasures, assign ownership, and sustain results — the full cycle: Detect → Analyze → Prioritize → Act → Verify → Sustain. Write a compelling LinkedIn post about "${topic}" targeting Operations Directors, CI Managers, COOs, and Plant Managers. 150-250 words, thought-leadership style, use line breaks, end with a question or CTA. Write only the post content, nothing else.`,
+            'Cold Email':      `You are a B2B sales copywriter for AIMTRIA Systems, an intelligent operations and CI platform for manufacturing, logistics, and distribution companies. Write a cold email targeting an operations or CI leader about "${topic}". Include a subject line, keep body to 4-6 sentences, use {{First Name}}, {{Company}}, and {{Your Name}} as placeholders. Mention the closed-loop CI cycle (Detect → Analyze → Act → Sustain) naturally. Focus on pain: improvement projects scattered across spreadsheets, lack of visibility, performance regression. Close by offering a 20-minute call. Write only the email, nothing else.`,
+            'Follow-up Email': `You are a B2B sales copywriter for AIMTRIA Systems. Write a warm follow-up email about "${topic}" targeting an operations or CI leader. Include subject line, 3-4 sentences, use {{First Name}}, {{Company}}, {{Your Name}} as placeholders. Mention AIMTRIA's 8-week scoped pilot (1 site, real data, no long-term commitment) as a low-risk entry point. Be warm, not pushy. Write only the email, nothing else.`,
+            'Proposal Intro':  `You are writing a professional proposal for AIMTRIA Systems, an intelligent operations and CI platform (Detect → Analyze → Prioritize → Act → Verify → Sustain). Write a proposal introduction for an engagement with {{Company}} addressing "${topic}". Include: executive summary of the problem, what the client gets (platform access, integrations, 8-week pilot, weekly reviews, ROI report), investment section with placeholders, and next steps. Use {{Company}} and {{First Name}} as placeholders. Write only the proposal content, nothing else.`,
         };
 
         try {
@@ -1483,43 +1681,49 @@ function runPricingAgent() {
         const tiers = {
             packages: [
                 {
-                    name: 'Starter',
+                    name: 'Discovery Pilot',
                     price: starter,
-                    period: 'one-time / 4 weeks',
+                    period: '8-week pilot / 1 site',
                     features: [
-                        `${niche} audit & diagnosis`,
-                        '90-minute strategy session',
-                        'Priority action plan (written)',
-                        'Email support for 2 weeks',
+                        'AIMTRIA platform access — 1 operational site',
+                        'Up to 2 system integrations (ERP, WMS, or spreadsheets)',
+                        'Automated performance monitoring & gap detection',
+                        'Root cause analysis engine',
+                        'Action plan management (A3 / Kaizen / DMAIC)',
+                        'Weekly review sessions with AIMTRIA team',
+                        'Full ROI report at week 8',
                     ],
                 },
                 {
-                    name: 'Core',
+                    name: 'Growth License',
                     price: core,
-                    period: `${months}-month engagement`,
+                    period: 'annual license / up to 3 sites',
                     features: [
-                        'Everything in Starter',
-                        `Weekly 60-min implementation calls`,
-                        'Full strategy roadmap',
-                        'Async Slack/email support',
-                        'Monthly progress reviews',
+                        'Everything in Discovery Pilot',
+                        'Up to 3 operational sites',
+                        'Full system integrations (ERP, WMS, HR, Finance)',
+                        'Cross-site performance benchmarking',
+                        'Lean, Six Sigma & DMAIC countermeasure library',
+                        'Improvement replication across sites',
+                        'Quarterly executive reviews',
                     ],
                 },
                 {
-                    name: 'Premium',
+                    name: 'Enterprise',
                     price: premium,
-                    period: `${months}-month engagement`,
+                    period: 'annual license / unlimited sites',
                     features: [
-                        'Everything in Core',
-                        'Done-with-you implementation',
-                        'Unlimited async support',
-                        'Priority scheduling',
-                        'Quarterly business review',
-                        'Direct mobile access',
+                        'Everything in Growth License',
+                        'Unlimited sites and users',
+                        'Custom integrations & API access',
+                        'Dedicated Customer Success Manager',
+                        'Executive dashboard & board-level reporting',
+                        'SLA-backed uptime guarantee',
+                        'Priority support & onboarding',
                     ],
                 },
             ],
-            oneLiner: `I help ${niche.toLowerCase()} owners grow revenue predictably — without burning out or lowering their prices. My flagship engagement starts at ${fmt(starter)} and delivers a clear, actionable growth roadmap in 4 weeks.`,
+            oneLiner: `AIMTRIA helps ${niche.toLowerCase()} teams detect operational performance gaps automatically, manage improvement projects end-to-end, and sustain results long-term — starting with an 8-week pilot at ${fmt(starter)} so you see ROI before committing.`,
         };
 
         state.pricingTiers = tiers;

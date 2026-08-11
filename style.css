@@ -2,27 +2,29 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-    --brand:        #7B4AEA;
-    --brand-dark:   #5D34C5;
-    --brand-light:  #ede7ff;
-    --sidebar-bg:   #12112a;
-    --sidebar-text: #9496b8;
-    --sidebar-hover:#1e1d3a;
-    --bg:           #f3f4f9;
+    --brand:        #1A7AF5;
+    --brand-dark:   #1055C7;
+    --brand-light:  #ddeeff;
+    --accent:       #39E062;
+    --accent-dark:  #27a845;
+    --sidebar-bg:   #060C1A;
+    --sidebar-text: #7A93B8;
+    --sidebar-hover:#0D1830;
+    --bg:           #f0f4fa;
     --surface:      #ffffff;
-    --border:       #e5e7eb;
-    --text:         #1a1a2e;
-    --muted:        #6b7280;
-    --green:        #22c55e;
-    --green-bg:     #dcfce7;
+    --border:       #e2e8f0;
+    --text:         #0D1B2E;
+    --muted:        #64748b;
+    --green:        #39E062;
+    --green-bg:     #d4f7de;
     --amber:        #f59e0b;
     --amber-bg:     #fef3c7;
     --red:          #ef4444;
     --red-bg:       #fee2e2;
-    --blue:         #3b82f6;
-    --blue-bg:      #dbeafe;
+    --blue:         #1A7AF5;
+    --blue-bg:      #ddeeff;
     --shadow:       0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md:    0 4px 16px rgba(0,0,0,0.10);
+    --shadow-md:    0 4px 16px rgba(0,0,0,0.12);
     --radius:       10px;
     --radius-sm:    6px;
 }
@@ -112,7 +114,7 @@ body {
 }
 
 .nav-item.active {
-    background: rgba(123, 74, 234, 0.18);
+    background: rgba(26, 122, 245, 0.18);
     color: #fff;
 }
 
